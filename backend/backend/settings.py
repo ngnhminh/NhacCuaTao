@@ -11,15 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import mongoengine
 
-mongoengine.connect(
-    db='NhacCuaTao_SpotifyClone',        # Tên database MongoDB
-    host='mongodb://localhost:27017',  # Địa chỉ host MongoDB (localhost nếu chạy cục bộ)
-    username='your_username',        # Tên người dùng MongoDB nếu có
-    password='your_password',        # Mật khẩu MongoDB nếu có
-    authentication_source='admin'    # Nguồn xác thực (admin mặc định)
-)
+MONGO_DB = 'NhacCuaTao_SpotifyClone'         # Tên database MongoDB
+MONGO_URI = 'mongodb://localhost:27017'      # Địa chỉ host MongoDB
+MONGO_USERNAME = 'your_username'             # Tên người dùng MongoDB
+MONGO_PASSWORD = 'your_password'             # Mật khẩu MongoDB
+MONGO_AUTH_SOURCE = 'admin'        
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
