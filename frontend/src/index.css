@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@import './styles/font.css';
+@plugin "flowbite/plugin";
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+    themes: forest --default;
+}
+
+@plugin "daisyui/theme" {
+    name: "forest";
+    default: true;
+    --color-base-100: #1f1f1f;
+    --color-base-200: #121212;
+    --color-base-300: #000000;
+  }
+
+@layer base {
+    html {
+        font-family: 'Blazy', sans-serif;
+    }
+}
+
+html body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    font-size: 1rem;
+    line-height: 1.25rem;
+}
+
+.scrollbar {
+    scrollbar-width: none; /* Ẩn thanh cuộn mặc định */
+    -ms-overflow-style: none; /* Cho IE */
+  }
+
+input::-webkit-search-cancel-button {
+  appearance: none;
+  height: 1.2rem;
+  width: 2rem;
+  background: url('/close.svg') no-repeat center;
+  background-size: contain;
+  cursor: pointer;
+}
+
+
+.slider {
+  --slider-width: 100%;
+  --slider-height: 4px;
+  --slider-bg: rgb(82, 82, 82);
+  --slider-border-radius: 999px;
+  /* level */
+  --level-color: #fff;
+  --level-color-hover: #26d965;
+  --level-transition-duration: .1s;
+  /* icon */
+  --icon-margin: 8px;
+}
+
+.slider {
+  cursor: pointer;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: reverse;
+  -ms-flex-direction: row-reverse;
+  flex-direction: row-reverse;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.slider .volume {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: var(--icon-margin);
+}
+
+.slider .level {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: var(--slider-width);
+  height: var(--slider-height);
+  background: var(--slider-bg);
+  overflow: hidden;
+  border-radius: var(--slider-border-radius);
+  -webkit-transition: height var(--level-transition-duration);
+  -o-transition: height var(--level-transition-duration);
+  transition: height var(--level-transition-duration);
+  cursor: inherit;
+}
+
+.slider .level::-webkit-slider-thumb {
+  width: 0;
+  height: 0;
+  -webkit-box-shadow: -1000px 0 0 1000px var(--level-color);
+  box-shadow: -1000px 0 0 1000px var(--level-color);
+}
+
+.slider:hover .level::-webkit-slider-thumb {
+  -webkit-box-shadow: -1000px 0 0 1000px var(--level-color-hover);
+  box-shadow: -1000px 0 0 1000px var(--level-color-hover);
+}
+
+.slider:hover .level {
+  height: calc(var(--slider-height) * 1.5);
+
+}
+
+
+
+body.force-grabbing * {
+    cursor: grabbing !important;
+    }
+  
+
