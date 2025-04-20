@@ -1,8 +1,9 @@
 import { login } from "../api/loginApiController"; // import hàm login từ authApi
 
-export const loginService = async (email, password) => {
+export const loginService = async (userInformation) => {
+  console.log(userInformation);
   try {
-    const data = await login(email, password);
+    const data = await login(userInformation.email, userInformation.password);
 
     if(data != null)
         console.log("ok")

@@ -3,10 +3,10 @@ from django.contrib.auth.hashers import check_password
 import json
 from django.http import JsonResponse
 from .models import User
-
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
-
+@csrf_exempt
 def login_user(request):
     # email= request.POST.get("email")
     # password = request.POST.get("password")
@@ -17,9 +17,10 @@ def login_user(request):
             email = data.get("email")
             password = data.get("password")
             user = User.objects.get(email=email)
-            if check_password(password, user.password):
+            # if check_password(password, user.password):
+            if password == user.password:
                 user_data = {
-                    "user_id": user.user_id,
+                    "user_id": str(user.user_id),
                     "fullname": user.full_name,
                     "email": user.email,
                 }

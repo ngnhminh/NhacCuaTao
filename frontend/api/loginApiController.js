@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_URL = "http://127.0.0.1:8000/"; // Địa chỉ API của bạn
+const API_URL = "http://127.0.0.1:8000"; // Địa chỉ API 
 
-// Hàm login gọi API sử dụng axios
 export const login = async (email, password) => {
   try {
     // Gửi yêu cầu POST tới API để đăng nhập

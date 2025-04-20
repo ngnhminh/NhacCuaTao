@@ -14,8 +14,8 @@ from pathlib import Path
 
 MONGO_DB = 'NhacCuaTao_SpotifyClone'         # Tên database MongoDB
 MONGO_URI = 'mongodb://localhost:27017'      # Địa chỉ host MongoDB
-MONGO_USERNAME = 'your_username'             # Tên người dùng MongoDB
-MONGO_PASSWORD = 'your_password'             # Mật khẩu MongoDB
+MONGO_USERNAME = ''             # Tên người dùng MongoDB
+MONGO_PASSWORD = ''             # Mật khẩu MongoDB
 MONGO_AUTH_SOURCE = 'admin'        
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'Albums',
     'ArtistOfSong',
     'Artists',
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,6 +65,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOW_ALL_ORIGINS = True  # Hoặc nếu muốn cụ thể:
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:5173',
+# ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173"
 ]
 
 ROOT_URLCONF = 'backend.urls'
