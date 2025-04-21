@@ -1,17 +1,14 @@
-import Navbar from './Navbar';
-import Playbar from './Playbar';
+import Navbar from './Navbar'
+import Playbar from './Playbar'
 
 const MainLayout = (props) => {
-  return (
-    <div className='block'>
-      <Navbar />
-      <main >
-        {props.children}
-      </main>
-      <Playbar />
-    </div>
+    return (
+        <div className="block">
+            <Navbar />
+            <main>{props.children}</main>
+            <Playbar />
+        </div>
+    )
+}
 
-  );
-};
-
-export default MainLayout;
+export default MainLayout
