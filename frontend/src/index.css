@@ -117,3 +117,12 @@ body.force-grabbing * {
     }
   
 
+#dropdown {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+#dropdown:not(.hidden) {
+  opacity: 1;
+  transform: translateY(0);
+}
