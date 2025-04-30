@@ -40,5 +40,19 @@ export const getAllApproveArtistForms = async () => {
 
 export const deleteApproveArtistFormsById = async (id) => {
     return await axios.delete(`${API_URL}/api/requests/ArtistApproveDeleteForm/${id}/`);
-  };
-  
+};
+
+export const approveArtist = async (user, artist_name) => {
+    try {
+    const response = await axios.post(`${API_URL}/api/requests/ArtistApproveForm/`, 
+        {
+            user: user,
+            artist_name: artist_name,
+            action: "approveArtist" 
+        }
+    );      
+    return response.data;
+    } catch (error) {
+        console.error("Error lấy danh sách duyệt nghệ sĩ:", error);
+    }
+};

@@ -2,9 +2,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from AuthToken.models import AuthToken
 from .models import ArtistRequest
+from Artists.models import Artist
+from Users.models import User
 from datetime import datetime
 from django.http import JsonResponse
 from mongoengine.errors import DoesNotExist, ValidationError
+from bson import ObjectId
 
 # Create your views here.
 class RequestView(APIView):
@@ -62,7 +65,35 @@ class ArtistApproveFormView(APIView):
                 return JsonResponse({"list": result}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-        
+    
+
+    def post(self, request):
+        try:
+            action = request.data.get('action')
+            if action == "approveArtist":
+                userdata = request.data.get("user")
+                user = User.objects.get(id=ObjectId(userdata["id"]))  # <-- sửa ở đây
+                artist_name = request.data.get("artist_name")
+
+                new_artist = Artist.objects.create(
+                    artist_name=artist_name,
+                    profile_picture="",
+                    country="",
+                    active_years=datetime.now().year,
+                    followers=0,
+                    description="",
+                    user=user,
+                )
+
+                return JsonResponse({
+                    "created": True,
+                }, status=201)
+
+            return JsonResponse({"error": "Unauthorized"}, status=401)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
 class ArtistApproveDeleteFormView(APIView):
     def delete(self, request, id):
         try:
