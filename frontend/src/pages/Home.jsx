@@ -1,8 +1,10 @@
-import MainSection from '../components/sections/MainSection'
-import Navigation from '../components/sections/Navigation'
-import SidePart from '../components/SidePart'
-import Footer from '../layout/Footer'
-import { createSignal, onCleanup, onMount } from 'solid-js'
+import PanelContainer from '../components/PanelContainer';
+import MainSection from '../components/sections/MainSection';
+import Navigation from '../components/sections/Navigation';
+import SidePart from '../components/SidePart';
+import Footer from '../layout/Footer';
+import { createSignal, onCleanup, onMount } from 'solid-js';
+import { isSidebarVisible } from '../signal/sidebarStore';
 
 const items = [
     {
@@ -21,50 +23,59 @@ const items = [
         name: 'Tiếng Ồn Trắng',
         img: 'https://mosaic.scdn.co/640/ab67616d00001e0206013115ced3cd702e75a844ab67616d00001e0209848e952392cd4a18c5b29fab67616d00001e02ceec45d05413f26e152fb547ab67616d00001e02e34429d776708f87460cd97e',
     },
-]
+];
 const Home = () => {
-    let containerRef
-    let scrollContainer
-    const [scrolled, setScrolled] = createSignal(false)
+    let containerRef;
+    let scrollContainer;
+    const [scrolled, setScrolled] = createSignal(false);
 
-    const [imgSize, setImgSize] = createSignal(64)
-    const [gridCols, setGridCols] = createSignal('grid-cols-4')
-    const [scalebtn, setScalebtn] = createSignal()
-    const [scaletxt, setScaletxt] = createSignal()
+    const [imgSize, setImgSize] = createSignal(64);
+    const [gridCols, setGridCols] = createSignal('grid-cols-3');
+    const [scalebtn, setScalebtn] = createSignal();
+    const [scaletxt, setScaletxt] = createSignal();
 
     onMount(() => {
-        const handleScroll = () => {
-            setScrolled(scrollContainer.scrollTop > 74)
-        }
+        console.log('Scroll container width:', scrollContainer.offsetWidth);
 
-        scrollContainer.addEventListener('scroll', handleScroll)
-        handleScroll() // kiểm tra ban đầu
+        const handleScroll = () => {
+            setScrolled(scrollContainer.scrollTop > 74);
+        };
+
+        scrollContainer.addEventListener('scroll', handleScroll);
+        handleScroll(); // kiểm tra ban đầu
 
         onCleanup(() => {
-            scrollContainer.removeEventListener('scroll', handleScroll)
-        })
-    })
+            scrollContainer.removeEventListener('scroll', handleScroll);
+        });
+    });
 
     onMount(() => {
         const observer = new ResizeObserver((entries) => {
-            const width = entries[0].contentRect.width
+            const width = entries[0].contentRect.width;
             if (width >= 1024) {
-                setImgSize(64)
-                setGridCols('grid-cols-4')
-                setScalebtn('scale-100')
-                setScaletxt('scale-100')
+                setImgSize(48);
+                setGridCols('grid-cols-3');
+                setScalebtn('scale-80');
+                setScaletxt('scale-100');
             } else {
-                setImgSize(48)
-                setGridCols('grid-cols-4')
-                setScalebtn('scale-80')
-                setScaletxt('scale-95')
+                setImgSize(48);
+                setGridCols('grid-cols-3');
+                setScalebtn('scale-80');
+                setScaletxt('scale-95');
             }
-        })
 
-        observer.observe(containerRef)
+            if (isSidebarVisible()) {
+                setGridCols('grid-cols-2');
+            } else {
+                setGridCols('grid-cols-3');
+            }
+        });
 
-        onCleanup(() => observer.disconnect())
-    })
+        observer.observe(containerRef);
+
+        onCleanup(() => observer.disconnect());
+    });
+
     return (
         <div className="flex h-[calc(100vh-64px-72px)] gap-3 p-2 overflow-hidden w-full bg-base-300">
             <SidePart />
@@ -82,7 +93,9 @@ const Home = () => {
                     ref={containerRef}
                 >
                     {items.map((item) => (
-                        <div className="card card-side w-[250px] overflow-hidden rounded-md bg-white/10 hover:bg-white/20 group shadow-md">
+                        <div
+                            className={`card card-side min-w-[240px] max-w-full w-full sm:w-auto flex-shrink-0 overflow-hidden rounded-[4px] bg-white/10 hover:bg-white/20 group shadow-md`}
+                        >
                             <img
                                 style={{
                                     width: `${imgSize()}px`,
@@ -120,8 +133,10 @@ const Home = () => {
                 </div>
                 <Footer />
             </div>
-        </div>
-    )
-}
 
-export default Home
+            <PanelContainer />
+        </div>
+    );
+};
+
+export default Home;

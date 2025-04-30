@@ -1,99 +1,107 @@
-import { createSignal, onCleanup, onMount } from 'solid-js'
-import SidebarResizer from './SidebarResizer'
-import { Menu } from '../../public/Icon'
-import { Plus, Search, X } from 'lucide-solid'
-import { highlightMatch } from './lib/utils'
-import SidebarToggleButton from './SidebarToggleButton'
-import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js'
+import { createSignal, onCleanup, onMount } from 'solid-js';
+import SidebarResizer from './SidebarResizer';
+import { Menu } from '../../public/Icon';
+import { Plus, Search, X } from 'lucide-solid';
+import { highlightMatch } from './lib/utils';
+import SidebarToggleButton from './SidebarToggleButton';
+import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js';
 
 const artists = [
     {
         name: 'Đạt G',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101febc4b709c643e32f7bcc5a8d',
         date: '16 thg 6, 2024',
     },
     {
         name: 'Mr.Siro',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101f4371fb198b011bb666a3bfde',
         date: '16 thg 6, 2024',
     },
     {
         name: 'Đen',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5',
         date: '16 thg 6, 2024',
     },
     {
         name: 'Sol7',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101fcc911aa2866d62f7bd5e5894',
         date: '16 thg 6, 2024',
     },
     {
         name: 'Ngơ',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101f6994e627c5b26909bc8ba813',
         date: '16 thg 6, 2024',
     },
     {
         name: 'Binz',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101fc1e37930853ff1686dcdd567',
         date: '16 thg 6, 2024',
     },
     {
         name: 'W/N',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab6761610000101f316c0f0bc6cf3a29c203ab1e',
         date: '16 thg 6, 2024',
     },
     {
-        name: 'Sơn Tùng M-TP',
-        img: 'https://i.scdn.co/image/ab6761610000101f5a79a6ca8c60e4ec1440be53',
+        name: 'Guilty Gear Strive',
+        type: 'Danh sách phát',
+        img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
         date: '16 thg 6, 2024',
     },
-]
+];
 
 const SidePart = () => {
-    let sidebarRef
-    const [sidebarWidth, setSidebarWidth] = createSignal('405px')
-    const [isNarrow, setIsNarrow] = createSignal(false)
-    const [searchField, setSearchField] = createSignal(false)
-    const [select, setSelect] = createSignal(true)
-    const [searchQuery, setSearchQuery] = createSignal('')
+    let sidebarRef;
+    const [sidebarWidth, setSidebarWidth] = createSignal('405px');
+    const [isNarrow, setIsNarrow] = createSignal(false);
+    const [searchField, setSearchField] = createSignal(false);
+    const [select, setSelect] = createSignal(true);
+    const [searchQuery, setSearchQuery] = createSignal('');
 
     const toggleSidebar = () => {
-        const currentWidth = sidebarRef?.offsetWidth || 0
+        const currentWidth = sidebarRef?.offsetWidth || 0;
 
         if (currentWidth > 72) {
-            setSidebarWidth('72px')
+            setSidebarWidth('72px');
         } else {
-            setSidebarWidth('350px')
+            setSidebarWidth('350px');
         }
-    }
+    };
 
     onMount(() => {
         const observer = new ResizeObserver(() => {
-            const width = sidebarRef?.offsetWidth || 0
+            const width = sidebarRef?.offsetWidth || 0;
 
-            setIsNarrow(width <= 420)
+            setIsNarrow(width <= 420);
 
             if (width === 72 && !isMinimalView()) {
-                setIsMinimalView(true)
+                setIsMinimalView(true);
             } else if (width > 72 && isMinimalView()) {
-                setIsMinimalView(false)
+                setIsMinimalView(false);
             }
-        })
+        });
 
         if (sidebarRef) {
-            observer.observe(sidebarRef)
+            observer.observe(sidebarRef);
         }
 
-        onCleanup(() => observer.disconnect())
-    })
+        onCleanup(() => observer.disconnect());
+    });
 
     // Lọc danh sách nghệ sĩ dựa trên giá trị tìm kiếm
     const filteredArtists = () => {
-        const query = searchQuery().toLowerCase()
+        const query = searchQuery().toLowerCase();
         return artists.filter((artist) =>
             artist.name.toLowerCase().includes(query)
-        )
-    }
+        );
+    };
 
     return (
         <>
@@ -136,7 +144,7 @@ const SidePart = () => {
                     {isMinimalView() ? (
                         // Chế độ hiển thị tối giản
                         <div
-                            class="text-base-content whitespace-nowrap scrollbar pt-8 overflow-auto
+                            class="text-base-content whitespace-nowrap scrollbar overflow-auto
             [&::-webkit-scrollbar]:w-8"
                         >
                             <For each={artists}>
@@ -145,7 +153,11 @@ const SidePart = () => {
                                         <img
                                             src={artist.img}
                                             alt={artist.name}
-                                            class="size-12 rounded-full object-cover"
+                                            class={`size-12 object-cover ${
+                                                artist.type === 'Danh sách phát'
+                                                    ? 'rounded-md'
+                                                    : 'rounded-full'
+                                            }`}
                                         />
                                     </div>
                                 )}
@@ -173,10 +185,21 @@ const SidePart = () => {
                                             select()
                                                 ? 'text-primary-content bg-neutral-content'
                                                 : 'btn-soft'
-                                        } transition-all duration-150 h-9  hover:scale-102 `}
+                                        } transition-all duration-150 h-9  hover:bg-white/50 `}
                                         onClick={() => setSelect(true)}
                                     >
                                         Nghệ sĩ
+                                    </button>
+
+                                    <button
+                                        className={`btn ${
+                                            select()
+                                                ? 'text-primary-content bg-neutral-content'
+                                                : 'btn-soft'
+                                        } transition-all duration-150 h-9  hover:bg-white/50 `}
+                                        onClick={() => setSelect(true)}
+                                    >
+                                        Danh sách phát
                                     </button>
                                 </div>
 
@@ -250,14 +273,24 @@ const SidePart = () => {
                                                 <img
                                                     src={artist.img}
                                                     alt={artist.name}
-                                                    class="size-12 rounded-full object-cover"
+                                                    class={`size-12 object-cover ${
+                                                        artist.type ===
+                                                        'Danh sách phát'
+                                                            ? 'rounded-md'
+                                                            : 'rounded-full'
+                                                    }`}
                                                 />
-                                                <span class="line-clamp-1">
-                                                    {highlightMatch(
-                                                        artist.name,
-                                                        searchQuery()
-                                                    )}
-                                                </span>
+                                                <div>
+                                                    <span class="line-clamp-1 text-white">
+                                                        {highlightMatch(
+                                                            artist.name,
+                                                            searchQuery()
+                                                        )}
+                                                    </span>
+                                                    <span className="text-[#b3b3b3] text-sm">
+                                                        {artist.type}
+                                                    </span>
+                                                </div>
                                             </div>
                                             {!isNarrow() && (
                                                 <div className="flex justify-center text-sm items-center">
@@ -273,7 +306,7 @@ const SidePart = () => {
                 </div>
             </aside>
         </>
-    )
-}
+    );
+};
 
-export default SidePart
+export default SidePart;

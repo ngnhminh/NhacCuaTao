@@ -1,5 +1,5 @@
 // components/Playbar.tsx
-import { createSignal } from 'solid-js'
+import { createSignal } from 'solid-js';
 import {
     Play,
     Pause,
@@ -12,45 +12,46 @@ import {
     MinimizeIcon,
     ChevronDown,
     ChevronUp,
-} from 'lucide-solid'
+} from 'lucide-solid';
 import {
     Device,
     Thumbnail,
     Playing,
     Replay,
     ReplayAgain,
-} from '../../public/Icon'
-import { useActive, useFullscreen } from '../components/lib/utils'
-import { Mic } from './../../public/Icon'
-import FavouriteButton from '../components/FavouriteButton'
+} from '../../public/Icon';
+import { useActive, useFullscreen } from '../components/lib/utils';
+import { Mic } from './../../public/Icon';
+import FavouriteButton from '../components/FavouriteButton';
+import { isSidebarVisible, setIsSidebarVisible } from '../signal/sidebarStore';
 
 export default function Playbar() {
-    const [isPlaying, setIsPlaying] = createSignal(false)
-    const [progress, setProgress] = createSignal(40)
-    const [volume, setVolume] = createSignal(70)
-    const { isFullscreen, toggle } = useFullscreen()
+    const [isPlaying, setIsPlaying] = createSignal(false);
+    const [progress, setProgress] = createSignal(40);
+    const [volume, setVolume] = createSignal(70);
+    const { isFullscreen, toggle } = useFullscreen();
 
     const handleVolume = (e) => {
-        const value = +e.target.value
-        setVolume(value)
-    }
+        const value = +e.target.value;
+        setVolume(value);
+    };
 
     const handleProgress = (e) => {
-        const value = +e.target.value
-        setProgress(value)
-    }
+        const value = +e.target.value;
+        setProgress(value);
+    };
 
-    const shuffleState = useActive(false)
-    const micState = useActive(false)
-    const collapse = useActive(false)
+    const shuffleState = useActive(false);
+    const micState = useActive(false);
+    const collapse = useActive(false);
 
-    const [activeControl, setActiveControl] = createSignal(null)
+    const [activeControl, setActiveControl] = createSignal(null);
 
-    const [replayMode, setReplayMode] = createSignal(0) // 0 = off, 1 = all, 2 = one
+    const [replayMode, setReplayMode] = createSignal(0); // 0 = off, 1 = all, 2 = one
 
     const toggleReplayMode = () => {
-        setReplayMode((prev) => (prev + 1) % 3) // loop 0 -> 1 -> 2 -> 0...
-    }
+        setReplayMode((prev) => (prev + 1) % 3); // loop 0 -> 1 -> 2 -> 0...
+    };
 
     return (
         <div class=" h-[72px] sticky bottom-0 left-0 right-0 bg-base-300 text-base-content p-2 z-2 grid grid-cols-10">
@@ -176,11 +177,12 @@ export default function Playbar() {
             <div class="flex items-center gap-4 col-span-3 justify-end">
                 <div class="flex flex-col items-center ">
                     <button
-                        onClick={() =>
+                        onClick={() => {
                             setActiveControl(
                                 activeControl() === 'playing' ? null : 'playing'
-                            )
-                        }
+                            );
+                            setIsSidebarVisible((prev) => !prev);
+                        }}
                         className={`btn bg-transparent p-0 size-fit border-none transition-all duration-100 hover:scale-103 ${
                             activeControl() === 'playing'
                                 ? 'text-primary'
@@ -296,5 +298,5 @@ export default function Playbar() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

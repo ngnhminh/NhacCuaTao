@@ -1,6 +1,12 @@
-import { Logo, Home } from '../../public/Icon.jsx'
+import { Logo, Home } from '../../public/Icon.jsx';
+import { createSignal } from 'solid-js';
 
 const Navbar = () => {
+    const [dropdownVisible, setDropdownVisible] = createSignal(false);
+
+    const handleFocus = () => setDropdownVisible(true);
+    const handleBlur = () => setDropdownVisible(false);
+
     return (
         <header className="antialiased sticky top-0 left-0 right-0 z-999  dark:bg-base-300 ">
             <nav className="bg-base-300 p-2">
@@ -21,39 +27,333 @@ const Navbar = () => {
                         </button>
 
                         <form
+                            autoComplete="off"
                             action="#"
                             method="GET"
                             className="hidden lg:block lg:pl-2 outline-none"
                         >
-                            {/* <label for="topbar-search" className="sr-only">
-                                Search
-                            </label> */}
                             <div className="relative mt-1 lg:w-96">
-                                <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+                                {/* ICON BÊN TRONG INPUT */}
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <svg
-                                        className="w-4 h-4 text-base-content "
+                                        className="w-4 h-4 text-base-content"
                                         aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 20 20"
                                     >
-                                        {' '}
                                         <path
                                             stroke="currentColor"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
                                             d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                                        />{' '}
+                                        />
                                     </svg>
                                 </div>
+
+                                {/* INPUT */}
                                 <input
                                     type="search"
-                                    name="email"
+                                    name="search"
                                     id="topbar-search"
-                                    className=" border-none ring-base-content focus:ring-2 text-gray-900 sm:text-sm rounded-full block w-full pl-9 p-2.5 dark:bg-base-100 dark:placeholder-base-content dark:text-white "
+                                    class="border-none ring-base-content focus:ring-2 text-gray-900 sm:text-sm rounded-full block w-full pl-9 p-2.5 dark:bg-base-100 dark:placeholder-base-content dark:text-white"
                                     placeholder="Bạn muốn phát nội dung gì?"
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
                                 />
+
+                                {dropdownVisible() && (
+                                    <div class="absolute left-0 right-0 mt-1 bg-base-100 shadow-lg rounded-md z-50 p-2 text-sm dark:bg-base-200">
+                                        <p class="py-1 px-3 text-white font-bold rounded">
+                                            Các tìm kiếm gần đây
+                                        </p>
+                                        <ul>
+                                            <li>
+                                                <div className="flex items-center justify-between rounded-md cursor-pointer p-2 hover:bg-[#3f3f3f] hover:text-white group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative w-12 h-12">
+                                                            <img
+                                                                className="w-full h-full rounded-[4px]"
+                                                                src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                                                alt="Album"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="absolute rounded-[4px] p-3 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/50"
+                                                            >
+                                                                <svg
+                                                                    data-encore-id="icon"
+                                                                    role="img"
+                                                                    aria-hidden="true"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="24"
+                                                                    height="24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="text-white cursor-pointer hover:underline">
+                                                                The Roar of the
+                                                                Spark
+                                                            </div>
+                                                            <div className="text-[14px] text-white">
+                                                                NAOKI, Arc
+                                                                System Works
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="py-2 cursor-pointer hover:scale-105 hover:text-white hover:transition duration-[50ms]">
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="opacity-0 group-hover:opacity-100 transition duration-150"
+                                                        >
+                                                            <svg
+                                                                role="img"
+                                                                aria-hidden="true"
+                                                                viewBox="0 0 16 16"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between rounded-md cursor-pointer p-2 hover:bg-[#3f3f3f] hover:text-white group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative w-12 h-12">
+                                                            <img
+                                                                className="w-full h-full rounded-[4px]"
+                                                                src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                                                alt="Album"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="absolute rounded-[4px] p-3 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/50"
+                                                            >
+                                                                <svg
+                                                                    data-encore-id="icon"
+                                                                    role="img"
+                                                                    aria-hidden="true"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="24"
+                                                                    height="24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="text-white cursor-pointer hover:underline">
+                                                                The Roar of the
+                                                                Spark
+                                                            </div>
+                                                            <div className="text-[14px] text-white">
+                                                                NAOKI, Arc
+                                                                System Works
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="py-2 cursor-pointer hover:scale-105 hover:text-white hover:transition duration-[50ms]">
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="opacity-0 group-hover:opacity-100 transition duration-150"
+                                                        >
+                                                            <svg
+                                                                role="img"
+                                                                aria-hidden="true"
+                                                                viewBox="0 0 16 16"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between rounded-md cursor-pointer p-2 hover:bg-[#3f3f3f] hover:text-white group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative w-12 h-12">
+                                                            <img
+                                                                className="w-full h-full rounded-[4px]"
+                                                                src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                                                alt="Album"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="absolute rounded-[4px] p-3 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/50"
+                                                            >
+                                                                <svg
+                                                                    data-encore-id="icon"
+                                                                    role="img"
+                                                                    aria-hidden="true"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="24"
+                                                                    height="24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="text-white cursor-pointer hover:underline">
+                                                                The Roar of the
+                                                                Spark
+                                                            </div>
+                                                            <div className="text-[14px] text-white">
+                                                                NAOKI, Arc
+                                                                System Works
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="py-2 cursor-pointer hover:scale-105 hover:text-white hover:transition duration-[50ms]">
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="opacity-0 group-hover:opacity-100 transition duration-150"
+                                                        >
+                                                            <svg
+                                                                role="img"
+                                                                aria-hidden="true"
+                                                                viewBox="0 0 16 16"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between rounded-md cursor-pointer p-2 hover:bg-[#3f3f3f] hover:text-white group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative w-12 h-12">
+                                                            <img
+                                                                className="w-full h-full rounded-[4px]"
+                                                                src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                                                alt="Album"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="absolute rounded-[4px] p-3 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/50"
+                                                            >
+                                                                <svg
+                                                                    data-encore-id="icon"
+                                                                    role="img"
+                                                                    aria-hidden="true"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="24"
+                                                                    height="24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="text-white cursor-pointer hover:underline">
+                                                                The Roar of the
+                                                                Spark
+                                                            </div>
+                                                            <div className="text-[14px] text-white">
+                                                                NAOKI, Arc
+                                                                System Works
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="py-2 cursor-pointer hover:scale-105 hover:text-white hover:transition duration-[50ms]">
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="opacity-0 group-hover:opacity-100 transition duration-150"
+                                                        >
+                                                            <svg
+                                                                role="img"
+                                                                aria-hidden="true"
+                                                                viewBox="0 0 16 16"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between rounded-md cursor-pointer p-2 hover:bg-[#3f3f3f] hover:text-white group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative w-12 h-12">
+                                                            <img
+                                                                className="w-full h-full rounded-[4px]"
+                                                                src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                                                alt="Album"
+                                                            />
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="absolute rounded-[4px] p-3 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/50"
+                                                            >
+                                                                <svg
+                                                                    data-encore-id="icon"
+                                                                    role="img"
+                                                                    aria-hidden="true"
+                                                                    viewBox="0 0 24 24"
+                                                                    width="24"
+                                                                    height="24"
+                                                                    fill="currentColor"
+                                                                >
+                                                                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="text-white cursor-pointer hover:underline">
+                                                                The Roar of the
+                                                                Spark
+                                                            </div>
+                                                            <div className="text-[14px] text-white">
+                                                                NAOKI, Arc
+                                                                System Works
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="py-2 cursor-pointer hover:scale-105 hover:text-white hover:transition duration-[50ms]">
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="opacity-0 group-hover:opacity-100 transition duration-150"
+                                                        >
+                                                            <svg
+                                                                role="img"
+                                                                aria-hidden="true"
+                                                                viewBox="0 0 16 16"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         </form>
                     </div>
@@ -113,7 +413,7 @@ const Navbar = () => {
                         </button>
 
                         <div
-                            className="hidden z-50 my-4 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-base-200/95 dark:divide-gray-600"
+                            className="hidden z-50 my-4 w-56 text-base list-none bg-white rounded-md divide-y divide-gray-100 shadow dark:bg-base-200/95 dark:divide-gray-600"
                             id="dropdown"
                         >
                             <div className="py-3 px-4">
@@ -239,7 +539,7 @@ const Navbar = () => {
                 </div>
             </nav>
         </header>
-    )
-}
+    );
+};
 
-export default Navbar
+export default Navbar;
