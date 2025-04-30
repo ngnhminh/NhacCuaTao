@@ -5,7 +5,9 @@
 @plugin "daisyui" {
     themes: forest --default;
 }
-
+body {
+  font-family: 'Spotify Circular', sans-serif; /* Sans-serif là font fallback */
+}
 @plugin "daisyui/theme" {
     name: "forest";
     default: true;

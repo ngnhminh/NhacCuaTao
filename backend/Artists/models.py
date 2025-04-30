@@ -2,7 +2,6 @@ from mongoengine import Document, StringField, IntField, LongField, ReferenceFie
 from Users.models import User
 # Create your models here.
 
-
 class Artist(Document):
     artist_id = IntField(primary_key=True)  # ArtistId là khóa chính
     artist_name = StringField(max_length=255, required=True)  # Tên nghệ sĩ
@@ -13,3 +12,7 @@ class Artist(Document):
     monthly_listener = LongField()  # Số người nghe hàng tháng
     description = StringField()  # Mô tả
     user = ReferenceField(User, required=True)  # Liên kết với model User
+
+    meta = {
+        'collection': 'User'
+    }

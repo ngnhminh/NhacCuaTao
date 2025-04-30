@@ -2,7 +2,9 @@ import MainSection from "../components/sections/MainSection";
 import Navigation from "../components/sections/Navigation";
 import SidePart from "../components/SidePart";
 import Footer from "../layout/Footer";
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { useAuth } from "../layout/AuthContext";
+import Profile from "./Profile";
 
 const items = [
   {
@@ -26,7 +28,8 @@ const Home = () => {
   let containerRef;
   let scrollContainer;
   const [scrolled, setScrolled] = createSignal(false);
-
+  const { isOpenProfile } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [imgSize, setImgSize] = createSignal(64);
   const [gridCols, setGridCols] = createSignal("grid-cols-4");
   const [scalebtn, setScalebtn] = createSignal();
@@ -69,45 +72,55 @@ const Home = () => {
   });
   return (
     <div className="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300" >
-      <SidePart />
-      <div 
-      ref={scrollContainer}
-      className={`w-full rounded-md overflow-y-auto ease-linear transition-colors duration-400 ${ scrolled()? "bg-base-200" : "bg-gradient-to-b from-amber-900/45 to-base-200 "} `}>
-           <Navigation scrolled={scrolled} />
-          <div className={`grid ${gridCols()} px-12 gap-3`} ref={containerRef}>
-            {items.map((item) => (
-                <div className="card card-side overflow-hidden rounded-md bg-white/10 hover:bg-white/20 group shadow-md">
-                  <img
-                    style={{ width: `${imgSize()}px`, height: "auto" }}
-                    class="transition-all duration-300 object-contain"
-                    src={item.img}
-                    alt={item.name}
-                  />
-                  <div className="card-body cursor-pointer group-hover:brightness-130 transition-all duration-200 flex-row p-0 w-full items-center relative">
-                    <h2 className={`card-title w-full pl-3 line-clamp-2 ${scaletxt()} `} >
-                      {item.name}
-                    </h2>
-                    <div className="card-actions pr-3 opacity-0 group-hover:opacity-100 hover:scale-105 hover:brightness-120 transition-all duration-200 ">
-                      <button className={`btn btn-primary flex shadow-sm size-[48px] p-auto btn-circle ${scalebtn()} `}>
-                        <svg
-                          class="size-8"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M6 4l10 6-10 6V4z" />
-                        </svg>
-                      </button>
+      <Show when={isLoggedIn()} fallback={<></>}>
+        <SidePart />
+      </Show>
+      <Show when = {isOpenProfile()}
+            fallback={
+              <div 
+              ref={scrollContainer}
+              className={`w-full rounded-md overflow-y-auto ease-linear transition-colors duration-400 ${ scrolled()? "bg-base-200" : "bg-gradient-to-b from-amber-900/45 to-base-200 "} `}>
+                  <Navigation scrolled={scrolled} />
+                  <Show when = {isLoggedIn()}
+                        fallback = {<></>}>
+                    <div className={`grid ${gridCols()} px-12 gap-3`} ref={containerRef}>
+                      {items.map((item) => (
+                          <div className="card card-side overflow-hidden rounded-md bg-white/10 hover:bg-white/20 group shadow-md">
+                            <img
+                              style={{ width: `${imgSize()}px`, height: "auto" }}
+                              class="transition-all duration-300 object-contain"
+                              src={item.img}
+                              alt={item.name}
+                            />
+                            <div className="card-body cursor-pointer group-hover:brightness-130 transition-all duration-200 flex-row p-0 w-full items-center relative">
+                              <h2 className={`card-title w-full pl-3 line-clamp-2 ${scaletxt()} `} >
+                                {item.name}
+                              </h2>
+                              <div className="card-actions pr-3 opacity-0 group-hover:opacity-100 hover:scale-105 hover:brightness-120 transition-all duration-200 ">
+                                <button className={`btn btn-primary flex shadow-sm size-[48px] p-auto btn-circle ${scalebtn()} `}>
+                                  <svg
+                                    class="size-8"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M6 4l10 6-10 6V4z" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                      ))}
                     </div>
+                  </Show>
+                  <div className="pb-15">
+                    <MainSection />
                   </div>
-                </div>
-            ))}
-          </div>
-          <div className="pb-15">
-            <MainSection />
-          </div>
-          <Footer />
-      </div>
-    </div>
+                  <Footer />
+              </div>
+            }>
+        <Profile></Profile>
+      </Show>
+    </div>  
   );
 };
 

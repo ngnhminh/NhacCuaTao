@@ -1,19 +1,27 @@
 import { createSignal } from "solid-js";
 import { loginService } from "/./services/authService";
+import toast from 'solid-toast';
+import { useNavigate } from "@solidjs/router";
+import { useAuth } from "../layout/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
-
+  const navigate = useNavigate();
+  const auth = useAuth();
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = await loginService({ email: email(), password: password() });
-
-      // Lưu token nếu có ở đây (ví dụ localStorage.setItem('token', data.token))
-      console.log("Login success:", data);
-
-      navigate("/dashboard");
+      // console.log("Login success:", data);
+      if(data){
+        auth.setIsLoggedIn(true);
+        toast.success("Đăng nhập thành công!");
+      }else{
+        toast.error("Đăng nhập thất bại");
+      }
+      navigate("/");
     } catch (err) {
       alert("Đăng nhập thất bại!");
       console.error(err);

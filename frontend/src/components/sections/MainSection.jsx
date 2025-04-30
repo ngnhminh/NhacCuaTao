@@ -1,6 +1,17 @@
 import Carousel from "../lib/Carousel";
+import { useAuth } from "../../layout/AuthContext";
+import {getUserInformService} from "../../../services/authService";
+import { createResource, Show} from "solid-js";
 
 export default function MainSection() {
+  const { isLoggedIn } = useAuth();
+  const token = localStorage.getItem("userToken");
+
+  const [data] = createResource(async () => {
+    if (!token) return null;
+    return await getUserInformService();
+  });
+
   const mixes = [
     {
       id: 1,
@@ -124,24 +135,67 @@ export default function MainSection() {
   ];
 
   return (
-    <div class="text-white p-6 font-sans space-y-6">
-      {/* Section 1 */}
-      <div className="flex justify-between items-center">
-        <h2 class="text-2xl font-bold">Dành Cho Minh Triệu</h2>
-        <a href="#" className="hover:underline text-base-content font-medium">
-          <span>Hiện tất cả</span>
-        </a>
-      </div>
-      <Carousel items={mixes} itemWidth={200} />
+    <Show
+      when={!data.loading}
+      fallback={
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div class="loading loading-spinner text-white w-14 h-14"></div>
+        </div>
+      }
+    >
+      <div class="text-white p-6 font-sans space-y-6">
+        <Show when={isLoggedIn()}
+          fallback={
+              <>
+                {/* {Section 1} */}
+                <div className="flex justify-between items-center">
+                  <h2 class="text-2xl font-bold">Nhạc thịnh hành</h2>
+                  <a href="#" className="hover:underline text-base-content font-medium">
+                    <span>Hiện tất cả</span>
+                  </a>
+                </div>
+                <Carousel items={mixes} itemWidth={200} />
 
-      {/* Section 2 */}
-      <div className="flex justify-between items-center">
-        <h2 class="text-2xl font-bold">Tuyển tập hàng đầu của bạn</h2>
-        <a href="#" className="hover:underline text-base-content font-medium">
-          <span>Hiện tất cả</span>
-        </a>
+                {/* {Section 2} */}
+                <div className="flex justify-between items-center">
+                  <h2 class="text-2xl font-bold">Nhạc sĩ hàng đầu</h2>
+                  <a href="#" className="hover:underline text-base-content font-medium">
+                    <span>Hiện tất cả</span>
+                  </a>
+                </div>
+                <Carousel items={toplist} itemWidth={200} />
+
+                {/* {Section 3} */}
+                <div className="flex justify-between items-center">
+                  <h2 class="text-2xl font-bold">Top Album hoặc Single</h2>
+                  <a href="#" className="hover:underline text-base-content font-medium">
+                    <span>Hiện tất cả</span>
+                  </a>
+                </div>
+                <Carousel items={toplist} itemWidth={200} />
+              </>
+            }
+          >
+            <>
+            <div className="flex justify-between items-center">
+              <h2 class="text-2xl font-bold">Dành Cho {data().user.full_name}</h2>
+              <a href="#" className="hover:underline text-base-content font-medium">
+                <span>Hiện tất cả</span>
+              </a>
+            </div>
+            <Carousel items={mixes} itemWidth={200} />
+
+            <div className="flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Tuyển tập hàng đầu</h2>
+                <a href="#" className="hover:underline text-base-content font-medium">
+                  <span>Hiện tất cả</span>
+                </a>
+              </div>
+              <Carousel items={toplist} itemWidth={200} />
+          </>
+        </Show>
       </div>
-      <Carousel items={toplist} itemWidth={200} />
-    </div>
+    </Show>
+    
   );
 }

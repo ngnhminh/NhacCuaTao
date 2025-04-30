@@ -25,31 +25,7 @@ const artists = [
     img: "https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5",
     date: "16 thg 6, 2024",
   },
-  {
-    name: "Sol7",
-    img: "https://i.scdn.co/image/ab6761610000101fcc911aa2866d62f7bd5e5894",
-    date: "16 thg 6, 2024",
-  },
-  {
-    name: "Ngơ",
-    img: "https://i.scdn.co/image/ab6761610000101f6994e627c5b26909bc8ba813",
-    date: "16 thg 6, 2024",
-  },
-  {
-    name: "Binz",
-    img: "https://i.scdn.co/image/ab6761610000101fc1e37930853ff1686dcdd567",
-    date: "16 thg 6, 2024",
-  },
-  {
-    name: "W/N",
-    img: "https://i.scdn.co/image/ab6761610000101f316c0f0bc6cf3a29c203ab1e",
-    date: "16 thg 6, 2024",
-  },
-  {
-    name: "Sơn Tùng M-TP",
-    img: "https://i.scdn.co/image/ab6761610000101f5a79a6ca8c60e4ec1440be53",
-    date: "16 thg 6, 2024",
-  },
+  // thêm các nghệ sĩ khác...
 ];
 
 const SidePart = () => {
@@ -114,9 +90,7 @@ const SidePart = () => {
 
         <div className={`flex flex-col items-stretch space-y-3 relative py-4  ${ isMinimalView() ? "px-1" : "px-4" } h-full  dark:bg-base-200 `}>
           <div
-            className={`flex items-center justify-between ${
-              isMinimalView() ? "flex-col gap-3 items-center" : ""
-            }`}
+            className={`flex items-center justify-between ${isMinimalView() ? "flex-col gap-3 items-center" : ""}`}
           >
             <div className="group flex gap-1 cursor-pointer">
               <SidebarToggleButton onClick={toggleSidebar} />
@@ -127,6 +101,7 @@ const SidePart = () => {
                 </span>
               )}
             </div>
+
             <button className="btn btn-circle size-9 btn-soft btn-primary">
               <Plus />
             </button>
@@ -151,26 +126,18 @@ const SidePart = () => {
           ) : (
             <>
               <div
-                class={`flex justify-between shrink-0 ${
-                  isNarrow() ? "flex-col gap-2" : "gap-1"
-                }`}
+                class={`flex justify-between shrink-0 ${isNarrow() ? "flex-col gap-2" : "gap-1"}`}
               >
                 <div className="flex gap-2 items-center ">
                   <button
-                    className={`btn btn-circle size-9 btn-soft btn-primary transition-all ease-initial duration-200 ${
-                      select() ? "" : "w-0 opacity-0"
-                    }`}
+                    className={`btn btn-circle size-9 btn-soft btn-primary transition-all ease-initial duration-200 ${select() ? "" : "w-0 opacity-0"}`}
                     onClick={() => setSelect(false)}
                   >
                     <X />
                   </button>
 
                   <button
-                    className={`btn ${
-                      select()
-                        ? "text-primary-content bg-neutral-content"
-                        : "btn-soft"
-                    } transition-all duration-150 h-9  hover:scale-102 `}
+                    className={`btn ${select() ? "text-primary-content bg-neutral-content" : "btn-soft"}`}
                     onClick={() => setSelect(true)}
                   >
                     Nghệ sĩ
@@ -178,28 +145,19 @@ const SidePart = () => {
                 </div>
 
                 <div
-                  className={`flex flex-1 justify-between items-center ${
-                    isNarrow() ? "" : " justify-end"
-                  } `}
+                  className={`flex flex-1 justify-between items-center ${isNarrow() ? "" : " justify-end"}`}
                 >
                   <label
-                    className={`input w-fit transition-all duration-300 ease-out ${
-                      searchField() ? "bg-base-100" : "bg-transparent"
-                    } ${
-                      isNarrow() ? "" : "flex-row-reverse"
-                    } hover:bg-base-100 cursor-pointer gap-0 border-none  !outline-none`}>
-                    <button
-                      onClick={() => setSearchField(!searchField())}
-                      className=" ">
+                    className={`input w-fit transition-all duration-300 ease-out ${searchField() ? "bg-base-100" : "bg-transparent"} ${isNarrow() ? "" : "flex-row-reverse"}`}
+                  >
+                    <button onClick={() => setSearchField(!searchField())}>
                       <Search size={16} />
                     </button>
                     <input
                       type="search"
                       value={searchQuery()}
                       onInput={(e) => setSearchQuery(e.target.value)}
-                      className={`ring-0 p-0 ease-out m-0 placeholder:text-base-content transition-all duration-100 ${
-                        searchField() ? "w-full ml-2 pl-2" : "w-0 opacity-0"
-                      } `}
+                      className={`ring-0 p-0 ease-out m-0 placeholder:text-base-content transition-all duration-100 ${searchField() ? "w-full ml-2 pl-2" : "w-0 opacity-0"}`}
                       required
                       placeholder="Search"
                     />
@@ -223,9 +181,7 @@ const SidePart = () => {
                 <For each={filteredArtists()}>
                   {(artist) => (
                     <div
-                      class={`grid ${
-                        isNarrow() ? "grid-cols-1" : "grid-cols-3"
-                      } items-center py-2 px-3 rounded-lg cursor-pointer hover:bg-base-100 transition`}
+                      class={`grid ${isNarrow() ? "grid-cols-1" : "grid-cols-3"} items-center py-2 px-3 rounded-lg cursor-pointer hover:bg-base-100 transition`}
                     >
                       <div class="flex items-center space-x-3">
                         <img
