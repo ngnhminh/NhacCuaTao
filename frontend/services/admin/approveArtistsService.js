@@ -21,7 +21,7 @@ export const deleteApproveArtistFormsByIdService = async (id) => {
 }
 
 export const approveArtistService = async (user, artist_name) => {
-    try{
+    try {
         const data = await approveArtist(user, artist_name);
         return data;
     }catch (error){

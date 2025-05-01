@@ -2,7 +2,7 @@ import { createSignal } from 'solid-js';
 import SidebarLeftResizer from './SidebarLeftResizer';
 import { isSidebarVisible } from '../signal/sidebarStore';
 
-const SidePart = () => {
+const PanelContainer = () => {
     let sidebarRef;
     const [sidebarWidth, setSidebarWidth] = createSignal('420px');
 
@@ -182,4 +182,4 @@ const SidePart = () => {
     );
 };
 
-export default SidePart;
+export default PanelContainer;
