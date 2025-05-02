@@ -1,6 +1,6 @@
 import { createSignal, onCleanup, onMount } from 'solid-js';
 import SidebarResizer from './SidebarResizer';
-import { Plus, Search, X } from 'lucide-solid';
+import { Plus } from 'lucide-solid';
 import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js';
 
 const SidePartLogout = () => {
@@ -10,8 +10,6 @@ const SidePartLogout = () => {
     onMount(() => {
         const observer = new ResizeObserver(() => {
             const width = sidebarRef?.offsetWidth || 0;
-
-            setIsNarrow(width <= 420);
 
             if (width === 72 && !isMinimalView()) {
                 setIsMinimalView(true);

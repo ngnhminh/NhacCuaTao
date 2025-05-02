@@ -96,7 +96,7 @@ const PanelContainer = () => {
                                 </div>
                                 <div className="text-[14px]">Nghệ sĩ chính</div>
                             </div>
-                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
+                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border whitespace-nowrap border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
                                 Theo dõi
                             </button>
                         </div>
@@ -107,7 +107,7 @@ const PanelContainer = () => {
                                 </div>
                                 <div className="text-[14px]">Nghệ sĩ chính</div>
                             </div>
-                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
+                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border whitespace-nowrap border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
                                 Theo dõi
                             </button>
                         </div>

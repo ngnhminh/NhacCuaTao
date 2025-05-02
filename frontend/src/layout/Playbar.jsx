@@ -182,7 +182,6 @@ export default function Playbar() {
                                 activeControl() === 'playing' ? null : 'playing'
                             );
                             setIsSidebarVisible((prev) => !prev);
-                            console.log(isSidebarVisible());
                         }}
                         className={`btn bg-transparent p-0 size-fit border-none transition-all duration-100 hover:scale-103 ${
                             activeControl() === 'playing'

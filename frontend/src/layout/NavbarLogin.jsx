@@ -261,7 +261,7 @@ const NavbarLogin = () => {
                                     src={
                                         data().user.avatar_url
                                             ? MEDIA_URL + data().user.avatar_url
-                                            : '/default-avatar.jpg'
+                                            : 'https://i.pinimg.com/474x/45/a2/2b/45a22b2285f2f60cf3a9c4739fe24b70.jpg'
                                     }
                                     alt="user photo"
                                 />

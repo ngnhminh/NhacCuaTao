@@ -66,17 +66,17 @@ const NavbarLogin = () => {
                         </button>
 
                         <A
+                            href="/register"
+                            class="btn overflow-hidden mx-3 mr-3 hover:brightness-110 transition-all duration-200 md:mr-0 text-white"
+                        >
+                            Đăng ký
+                        </A>
+
+                        <A
                             href="/login"
                             class="btn overflow-hidden mx-3 duration-200 md:mr-0 bg-white text-black font-bold"
                         >
                             Đăng nhập
-                        </A>
-
-                        <A
-                            href="/register"
-                            class="btn overflow-hidden mx-3 mr-3 hover:brightness-110 transition-all duration-200 md:mr-0 text-white"
-                        >
-                            Đăng ký tài khoản
                         </A>
                     </div>
                 </div>

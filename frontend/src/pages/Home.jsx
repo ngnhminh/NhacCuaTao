@@ -8,6 +8,7 @@ import { useAuth } from '../layout/AuthContext';
 import Profile from './Profile';
 import PanelContainer from '../components/PanelContainer';
 import { isSidebarVisible } from '../signal/sidebarStore';
+import { createMemo } from 'solid-js';
 
 const items = [
     {
@@ -33,16 +34,17 @@ const Home = () => {
     const [scrolled, setScrolled] = createSignal(false);
     const { isOpenProfile } = useAuth();
     const { isLoggedIn } = useAuth();
-    const [imgSize, setImgSize] = createSignal(64);
-    const [gridCols, setGridCols] = createSignal('grid-cols-3');
+    const [imgSize, setImgSize] = createSignal('auto');
     const [scalebtn, setScalebtn] = createSignal();
     const [scaletxt, setScaletxt] = createSignal();
+
+    const gridCols = createMemo(() => {
+        return isSidebarVisible() ? 'grid-cols-2' : 'grid-cols-3';
+    });
 
     onMount(() => {
         // Kiểm tra lại scrollContainer có tồn tại không
         if (scrollContainer) {
-            console.log('Scroll container width:', scrollContainer.offsetWidth);
-
             const handleScroll = () => {
                 setScrolled(scrollContainer.scrollTop > 74);
             };
@@ -64,19 +66,11 @@ const Home = () => {
                 setScaletxt('scale-100');
             } else {
                 setImgSize(48);
-                setGridCols('grid-cols-3');
+                setGridCols('grid-cols-2');
                 setScalebtn('scale-80');
                 setScaletxt('scale-95');
             }
-
-            if (isSidebarVisible()) {
-                setGridCols('grid-cols-2');
-            } else {
-                setGridCols('grid-cols-3');
-            }
         });
-
-        //   observer.observe(containerRef);
 
         onCleanup(() => observer.disconnect());
     });
@@ -91,7 +85,13 @@ const Home = () => {
                 when={isOpenProfile()}
                 fallback={
                     <div
-                        ref={(el) => (scrollContainer = el)} // Gán đúng ref cho scrollContainer
+                        ref={(el) => {
+                            scrollContainer = el;
+                            console.log(
+                                'Scroll container width:',
+                                el?.clientWidth
+                            ); // Log tại đây
+                        }} // Gán đúng ref cho scrollContainer
                         className={`w-full rounded-md overflow-y-auto ease-linear transition-colors duration-400 ${
                             scrolled()
                                 ? 'bg-base-200'
@@ -100,12 +100,9 @@ const Home = () => {
                     >
                         <Navigation scrolled={scrolled} />
                         <Show when={isLoggedIn()} fallback={<></>}>
-                            <div
-                                className={`grid ${gridCols()} px-12 gap-3`}
-                                ref={(el) => (containerRef = el)}
-                            >
+                            <div className={`grid ${gridCols()} px-12 gap-3`}>
                                 {items.map((item) => (
-                                    <div className="card card-side overflow-hidden rounded-md bg-white/10 hover:bg-white/20 group shadow-md">
+                                    <div className="card card-side h-12 overflow-hidden rounded-[4px] bg-white/10 hover:bg-white/20 group shadow-md">
                                         <img
                                             style={{
                                                 width: `${imgSize()}px`,
@@ -117,16 +114,16 @@ const Home = () => {
                                         />
                                         <div className="card-body cursor-pointer group-hover:brightness-130 transition-all duration-200 flex-row p-0 w-full items-center relative">
                                             <h2
-                                                className={`card-title w-full pl-3 line-clamp-2 ${scaletxt()}`}
+                                                className={`card-title w-full text-[14px] pl-3 line-clamp-2 ${scaletxt()}`}
                                             >
                                                 {item.name}
                                             </h2>
                                             <div className="card-actions pr-3 opacity-0 group-hover:opacity-100 hover:scale-105 hover:brightness-120 transition-all duration-200">
                                                 <button
-                                                    className={`btn btn-primary flex shadow-sm size-[48px] p-auto btn-circle ${scalebtn()}`}
+                                                    className={`btn btn-primary flex shadow-sm size-8 p-auto btn-circle ${scalebtn()}`}
                                                 >
                                                     <svg
-                                                        class="size-8"
+                                                        class="size-6"
                                                         fill="currentColor"
                                                         viewBox="0 0 20 20"
                                                     >
