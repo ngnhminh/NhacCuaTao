@@ -1,5 +1,5 @@
 // components/Playbar.tsx
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import {
     Play,
     Pause,
@@ -23,22 +23,30 @@ import {
 import { useActive, useFullscreen } from '../components/lib/utils';
 import { Mic } from './../../public/Icon';
 import FavouriteButton from '../components/FavouriteButton';
-import { isSidebarVisible, setIsSidebarVisible } from '../signal/sidebarStore';
+import { setIsSidebarVisible } from '../signal/sidebarStore';
 
 export default function Playbar() {
     const [isPlaying, setIsPlaying] = createSignal(false);
     const [progress, setProgress] = createSignal(40);
     const [volume, setVolume] = createSignal(70);
     const { isFullscreen, toggle } = useFullscreen();
+    let audioRef;
 
     const handleVolume = (e) => {
         const value = +e.target.value;
         setVolume(value);
+        if (audioRef) {
+            audioRef.volume = value / 100;
+        }
     };
 
     const handleProgress = (e) => {
         const value = +e.target.value;
         setProgress(value);
+
+        if (audioRef && audioRef.duration) {
+            audioRef.currentTime = (value / 100) * audioRef.duration;
+        }
     };
 
     const shuffleState = useActive(false);
@@ -52,6 +60,27 @@ export default function Playbar() {
     const toggleReplayMode = () => {
         setReplayMode((prev) => (prev + 1) % 3); // loop 0 -> 1 -> 2 -> 0...
     };
+
+    const togglePlay = () => {
+        if (!audioRef) return;
+
+        if (isPlaying()) {
+            audioRef.pause();
+            setIsPlaying(false);
+        } else {
+            audioRef.play();
+            setIsPlaying(true);
+        }
+    };
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    const [currentTime, setCurrentTime] = createSignal(0);
+    const [duration, setDuration] = createSignal(0);
 
     return (
         <div class=" h-[72px] sticky bottom-0 left-0 right-0 bg-base-300 text-base-content p-2 z-2 grid grid-cols-10">
@@ -69,17 +98,17 @@ export default function Playbar() {
                         )}
                     </button>
                     <img
-                        src="https://i.scdn.co/image/ab67616d00004851f5f1c702277641302f435ad7"
+                        src="https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_jpeg/covers/7/f/7fdc1a630c238af0815181f9faa190f5_1285212114.jpg"
                         alt="Album cover"
-                        class="size-[56px] rounded-xl"
+                        class="size-[56px] rounded-[4px]"
                     />
                 </figure>
                 <div className="flex flex-col justify-center">
                     <a href="#" className="hover:underline">
-                        <p class="text-sm font-semibold">Đưa em về nhà</p>
+                        <p class="text-sm font-semibold">Rock xuyên màn đêm</p>
                     </a>
                     <a href="#" className="hover:underline">
-                        <p class="text-xs text-zinc-400">GREY D, Chillies</p>
+                        <p class="text-xs text-zinc-400">Bức tường</p>
                     </a>
                 </div>
 
@@ -116,7 +145,7 @@ export default function Playbar() {
                     <div className="flex flex-col items-center">
                         <button
                             class="btn btn-circle hover:scale-103 hover:bg-white transition-all duration-75 bg-base-content text-base-300 border-none fill-base-300"
-                            onClick={() => setIsPlaying(!isPlaying())}
+                            onClick={togglePlay}
                         >
                             {isPlaying() ? (
                                 <Pause size={20} fill="" />
@@ -157,7 +186,9 @@ export default function Playbar() {
                 </div>
                 {/* Progress Bar */}
                 <div class="flex items-center gap-2 w-full">
-                    <span class="text-xs text-zinc-400">1:20</span>
+                    <span class="text-xs text-zinc-400">
+                        {formatTime(currentTime())}
+                    </span>
 
                     <div className="slider w-full h-1">
                         <input
@@ -169,7 +200,9 @@ export default function Playbar() {
                             className="level"
                         />
                     </div>
-                    <span class="text-xs text-zinc-400">3:45</span>
+                    <span class="text-xs text-zinc-400">
+                        {formatTime(duration())}
+                    </span>
                 </div>
             </div>
 
@@ -297,6 +330,25 @@ export default function Playbar() {
                     <div class="size-1 mt-1 opacity-0"></div>
                 </div>
             </div>
+
+            <audio
+                ref={(el) => (audioRef = el)}
+                src="audio/Rockxuyenmandem.mp3"
+                preload="auto"
+                onTimeUpdate={() => {
+                    if (audioRef && audioRef.duration) {
+                        setCurrentTime(audioRef.currentTime);
+                        setProgress(
+                            (audioRef.currentTime / audioRef.duration) * 100
+                        );
+                    }
+                }}
+                onLoadedMetadata={() => {
+                    if (audioRef) {
+                        setDuration(audioRef.duration);
+                    }
+                }}
+            />
         </div>
     );
 }
