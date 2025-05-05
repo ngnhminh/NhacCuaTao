@@ -1,9 +1,11 @@
-from Genres.models import Genre
 from Artists.models import Artist
 from Songs.models import Song
 # Create your models here.
-from mongoengine import Document, IntField, ReferenceField
+from mongoengine import Document, ListField, ReferenceField
 
 class ArtistOfSong(Document):
-    artist = ReferenceField(Artist, required=True)  # Liên kết với Artist
+    artists = ListField(ReferenceField(Artist))
     song = ReferenceField(Song, required=True)  # Liên kết với Song (tạo model Song tương tự)
+    meta = {
+        'collection': 'ArtistOfSong'
+    }

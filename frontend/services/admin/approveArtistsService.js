@@ -20,9 +20,9 @@ export const deleteApproveArtistFormsByIdService = async (id) => {
     }
 }
 
-export const approveArtistService = async (user, artist_name) => {
+export const approveArtistService = async (user, artist_name, formId) => {
     try{
-        const data = await approveArtist(user, artist_name);
+        const data = await approveArtist(user, artist_name, formId);
         return data;
     }catch (error){
         console.error("Delete error:", error.message);
