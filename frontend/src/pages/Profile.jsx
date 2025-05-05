@@ -81,9 +81,9 @@ const Profile = () => {
     setEditField(null);
   };
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
     const formData = new FormData();
     formData.append("avatar", file);
@@ -99,29 +99,29 @@ const Profile = () => {
     }
   };
 
-  const sendArtistApproveForm = async() => {
-    setUploading(true);
-    try{
-      const data = await requestArtistApproveService(facebookLink());
-      if(data){
-        alert("Gửi thành công");
-        handlePopupClose();
-      }
-    }catch(err){
-      console.error(err);
-    }finally{
-      setUploading(false);
-    }
-  }
+    const sendArtistApproveForm = async () => {
+        setUploading(true);
+        try {
+            const data = await requestArtistApproveService(facebookLink());
+            if (data) {
+                alert('Gửi thành công');
+                handlePopupClose();
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setUploading(false);
+        }
+    };
 
   const handlePopupClose = () => {
     setShowPopup(false);
     setShowAddMusic(false);
   };
 
-  const handlePopupOpen = () => {
-    setShowPopup(true);
-  };
+    const handlePopupOpen = () => {
+        setShowPopup(true);
+    };
 
   const saveChanges = async() => {
     await updateArtistInformService(tempData());

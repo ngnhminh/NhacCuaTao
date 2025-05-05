@@ -2,7 +2,7 @@ import { createSignal } from 'solid-js';
 import SidebarLeftResizer from './SidebarLeftResizer';
 import { isSidebarVisible } from '../signal/sidebarStore';
 
-const SidePart = () => {
+const PanelContainer = () => {
     let sidebarRef;
     const [sidebarWidth, setSidebarWidth] = createSignal('420px');
 
@@ -26,12 +26,12 @@ const SidePart = () => {
                     className={`flex flex-col items-stretch space-y-3 relative py-4 px-4 h-full dark:bg-base-200 overflow-y-auto`}
                 >
                     <div className="font-bold text-white mb-4">
-                        Guilty Gear Strive + DLC
+                        Tâm hồn của đá
                     </div>
                     <div class="">
                         <img
                             className="rounded-md"
-                            src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                            src="https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_jpeg/covers/7/f/7fdc1a630c238af0815181f9faa190f5_1285212114.jpg"
                         />
                     </div>
 
@@ -42,7 +42,7 @@ const SidePart = () => {
                                     href="#"
                                     className="text-2xl text-white font-bold hover:underline"
                                 >
-                                    Find Your One Way
+                                    Rock xuyên màn đêm
                                 </a>
                             </span>
                             <div>
@@ -51,16 +51,7 @@ const SidePart = () => {
                                         href="#"
                                         className="hover:underline hover:text-white"
                                     >
-                                        NAOKI
-                                    </a>
-                                </span>
-                                <span>
-                                    ,{' '}
-                                    <a
-                                        href="#"
-                                        className="hover:underline hover:text-white"
-                                    >
-                                        Arc System Works
+                                        Bức tường
                                     </a>
                                 </span>
                             </div>
@@ -92,22 +83,22 @@ const SidePart = () => {
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col gap-0.5">
                                 <div className="text-white cursor-pointer hover:underline">
-                                    NAOKI
+                                    Bước tường
                                 </div>
                                 <div className="text-[14px]">Nghệ sĩ chính</div>
                             </div>
-                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
+                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border whitespace-nowrap border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
                                 Theo dõi
                             </button>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col gap-0.5">
                                 <div className="text-white cursor-pointer hover:underline">
-                                    Arc System Works
+                                    Trần Lập
                                 </div>
                                 <div className="text-[14px]">Nghệ sĩ chính</div>
                             </div>
-                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
+                            <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border whitespace-nowrap border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
                                 Theo dõi
                             </button>
                         </div>
@@ -126,7 +117,7 @@ const SidePart = () => {
                                 <div className="relative w-12 h-12">
                                     <img
                                         className="w-full h-full rounded-[4px]"
-                                        src="https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9"
+                                        src="https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_jpeg/covers/7/f/7fdc1a630c238af0815181f9faa190f5_1285212114.jpg"
                                         alt="Album"
                                     />
                                     <span
@@ -149,11 +140,9 @@ const SidePart = () => {
 
                                 <div className="flex flex-col gap-0.5">
                                     <div className="text-white cursor-pointer">
-                                        The Roar of the Spark
+                                        Bông hồng thủy tinh
                                     </div>
-                                    <div className="text-[14px]">
-                                        NAOKI, Arc System Works
-                                    </div>
+                                    <div className="text-[14px]">Bức tường</div>
                                 </div>
                             </div>
 
@@ -182,4 +171,4 @@ const SidePart = () => {
     );
 };
 
-export default SidePart;
+export default PanelContainer;
