@@ -87,10 +87,6 @@ const Home = () => {
                     <div
                         ref={(el) => {
                             scrollContainer = el;
-                            console.log(
-                                'Scroll container width:',
-                                el?.clientWidth
-                            ); // Log tại đây
                         }} // Gán đúng ref cho scrollContainer
                         className={`w-full rounded-md overflow-y-auto ease-linear transition-colors duration-400 ${
                             scrolled()
