@@ -3,6 +3,8 @@ import MainLayout from './layout/MainLayout';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Album from './pages/Album';
+import Artist from './pages/Artist';
 import { AuthProvider } from './layout/AuthContext';
 import AdminLogin from './pages/AdminLogin';
 import AdminPage from './pages/AdminPage';
@@ -14,6 +16,8 @@ const App = () => {
                 {/* Layout chính */}
                 <Route path="/" component={MainLayout}>
                     <Route path="/" component={Home} />
+                    <Route path="/album" component={Album} />
+                    <Route path="/artist" component={Artist} />
                 </Route>
 
                 {/* Login layout */}

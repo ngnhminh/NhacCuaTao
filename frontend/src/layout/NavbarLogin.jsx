@@ -88,7 +88,7 @@ const NavbarLogin = () => {
 
 
     return (
-        <header className="antialiased sticky top-0 left-0 right-0 z-999 dark:bg-base-300">
+        <header className="antialiased sticky top-0 left-0 right-0 z-50 dark:bg-base-300">
             <nav className="bg-black border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-base-300">
                 <div className="flex flex-wrap justify-between items-center">
                     <div className="flex justify-start items-center">

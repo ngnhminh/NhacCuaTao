@@ -25,8 +25,8 @@ const PanelContainer = () => {
                 <div
                     className={`flex flex-col items-stretch space-y-3 relative py-4 px-4 h-full dark:bg-base-200 overflow-y-auto`}
                 >
-                    <div className="font-bold text-white mb-4">
-                        Tâm hồn của đá
+                    <div className="font-bold text-white mb-4 capitalize">
+                        Rock xuyên màn đêm
                     </div>
                     <div class="">
                         <img
@@ -39,7 +39,7 @@ const PanelContainer = () => {
                         <div>
                             <span>
                                 <a
-                                    href="#"
+                                    href="/album"
                                     className="text-2xl text-white font-bold hover:underline"
                                 >
                                     Rock xuyên màn đêm
@@ -48,7 +48,7 @@ const PanelContainer = () => {
                             <div>
                                 <span>
                                     <a
-                                        href="#"
+                                        href="/artist"
                                         className="hover:underline hover:text-white"
                                     >
                                         Bức tường
@@ -96,7 +96,7 @@ const PanelContainer = () => {
                                 <div className="text-white cursor-pointer hover:underline">
                                     Trần Lập
                                 </div>
-                                <div className="text-[14px]">Nghệ sĩ chính</div>
+                                <div className="text-[14px]">Nhà soạn nhạc</div>
                             </div>
                             <button className="text-[14px] px-4 py-1 font-bold text-white cursor-pointer max-h-8 border whitespace-nowrap border-[#7c7c7c] rounded-[9999px] hover:scale-[1.04] hover:border hover:border-[#fff] hover:transition duration-[50ms]">
                                 Theo dõi
