@@ -62,6 +62,10 @@ export const approveArtist = async (user, artist_name, formId) => {
 //Gửi thông tin duyệt bài hát
 export const requestSongApprove = async (formData) => {
     const token = localStorage.getItem("userToken");
+    for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+      
     if (token) {
       try {
         formData.append("action", "requestSongApprove");
@@ -98,16 +102,16 @@ export const requestSongApprove = async (formData) => {
 
 export const approveSong = async (artist, formId) => {
     try {
-    const response = await axios.post(`${API_URL}/api/requests/SongApproveForm/`, 
-        {
-            artist: artist,
-            formId: formId,
-            action: "approveSong" 
-        }
-    );      
-    return response.data;
+        const response = await axios.post(`${API_URL}/api/requests/SongApproveForm/`, 
+            {
+                artist: artist,
+                formId: formId,
+                action: "approveSong" 
+            }
+        );      
+        return response.data;
     } catch (error) {
-        console.error("Error lấy danh sách duyệt nghệ sĩ:", error);
+        console.error("Error Duyệt bài hát:", error);
     }
 };
 

@@ -5,6 +5,8 @@ import { Plus, Search, X } from 'lucide-solid';
 import { highlightMatch } from './lib/utils';
 import SidebarToggleButton from './SidebarToggleButton';
 import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js';
+import { initFlowbite } from 'flowbite';
+import {createPlaylistService} from "../../services/authService";
 
 const artists = [
     {
@@ -65,6 +67,10 @@ const SidePart = () => {
     const [select, setSelect] = createSignal(true);
     const [searchQuery, setSearchQuery] = createSignal('');
 
+    onMount(() => {
+        initFlowbite();
+    });
+
     const toggleSidebar = () => {
         const currentWidth = sidebarRef?.offsetWidth || 0;
 
@@ -103,6 +109,16 @@ const SidePart = () => {
         );
     };
 
+    const createPlaylist = async () =>{
+        try{
+            const result = await createPlaylistService();
+            console.log("Tạo playlist thành công" + result)
+            alert("Tạo playlist Thành công")
+        }catch(err){
+            console.error(err);
+        }
+    }
+    
     return (
         <>
             <aside
@@ -136,9 +152,25 @@ const SidePart = () => {
                                 </span>
                             )}
                         </div>
-                        <button className="btn btn-circle size-9 btn-soft btn-primary">
-                            <Plus />
-                        </button>
+                        <div className="relative inline-block">
+                            <button
+                                className="btn btn-circle size-9 btn-soft btn-primary"
+                                data-dropdown-toggle="panel-dropright"
+                            >
+                                <Plus />
+                            </button>
+
+                            <div
+                                id="panel-dropright"
+                                className="hidden absolute right-[-220px] mt-2 w-56 rounded-lg bg-white shadow-lg z-50"
+                            >
+                                <ul className="py-2 text-sm text-gray-700">
+                                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={createPlaylist}>
+                                        Tạo danh sách phát mới
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     {isMinimalView() ? (

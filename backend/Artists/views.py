@@ -32,9 +32,6 @@ class ArtistUpdateView(APIView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from .models import Artist  # Đảm bảo import model Artist
 
 class ArtistGetView(APIView):
     def get(self, request):
@@ -47,6 +44,9 @@ class ArtistGetView(APIView):
                         "id": str(artist.id),
                         "name": artist.artist_name,
                         "active_years": artist.active_years,
+                        "user": {
+                            "avatar_url": artist.user.avatar_url
+                        }
                     }
                     for artist in listArtist
                 ]

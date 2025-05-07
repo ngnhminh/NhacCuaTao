@@ -15,7 +15,7 @@ class ArtistRequest(Document):
 
 class SongRequest(Document):
     status = IntField(max_length=255, required=True)  
-    release_date = DateTimeField()  
+    release_date = StringField()  
     duration = IntField()  # Sử dụng DateTimeField cho thời lượng bài hát
     picture_url = StringField(max_length=255)
     song_url = StringField(max_length=255)

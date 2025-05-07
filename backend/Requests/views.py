@@ -13,6 +13,7 @@ from bson import ObjectId
 from django.core.files.storage import default_storage
 import json
 from django.core.files.base import ContentFile
+from django.conf import settings
 
 # Create your views here.
 class RequestView(APIView):
@@ -53,9 +54,9 @@ class RequestView(APIView):
                         user = auth_token.user
                         artist = Artist.objects.get(user=user)
 
-                        title = request.data.get("title")
-                        releaseDate = request.data.get("releaseDate")
-                        ageRestricted = request.data.get("ageRestricted")
+                        title = request.POST.get("title")
+                        releaseDate = request.POST.get("releaseDate")
+                        ageRestricted = request.POST.get("ageRestricted")
 
                         music_file = request.FILES.get('musicFile')
                         cover_file = request.FILES.get('cover')
@@ -64,29 +65,37 @@ class RequestView(APIView):
                             return JsonResponse({"error": "No cover uploaded"}, status=400)
                         
                         if not music_file:
-                            return JsonResponse({"error": "No file music"}, status=400)
-    
+                            return JsonResponse({"error": "No music file uploaded"}, status=400)
 
-                            
-                        cover_artist_ids_str = request.data.get("featuredArtists", "[]")
-                        cover_artist_ids = json.loads(cover_artist_ids_str)
-                        cover_artists = list(Artist.objects.filter(id__in=cover_artist_ids))
+                        # Parse featuredArtists from JSON string
+                        featured_artists_raw = request.POST.get("featuredArtists", "[]")
+                        try:
+                            cover_artist_objs = json.loads(featured_artists_raw)
+                        except json.JSONDecodeError:
+                            return JsonResponse({"error": "Invalid JSON for featured artists"}, status=400)
 
-                        musicname = f"musics/{music_file.name}"
+                        # Lọc các artist dựa trên ID
+                        cover_artists = list(Artist.objects.filter(id__in=[artist['id'] for artist in cover_artist_objs]))
+
+                        # Lưu file nhạc và ảnh bìa
+                        musicname = f"audios/{music_file.name}"
                         covername = f"covers/{cover_file.name}"
                         music_path = default_storage.save(musicname, music_file)
                         cover_path = default_storage.save(covername, cover_file)
-
+                        music_url = f"{settings.MEDIA_URL}{musicname}"
+                        cover_url = f"{settings.MEDIA_URL}{covername}"
+                        
+                        # Tạo song request mới
                         songRequest_form = SongRequest.objects.create(
                             title=title,
                             status=0,
                             release_date=releaseDate,
                             is_explicit=ageRestricted,
                             duration=0,
-                            picture_url=cover_path,
-                            song_url=music_path,
-                            cover_artists=cover_artists,
-                            artist=artist
+                            picture_url=cover_url,
+                            song_url=music_url,
+                            artist=artist,
+                            cover_artists=cover_artists
                         )
 
                         return JsonResponse({
@@ -97,6 +106,7 @@ class RequestView(APIView):
                 return JsonResponse({"error": "Unauthorized"}, status=401)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
         
 # Trang Duyệt người dùng
 class ArtistApproveFormView(APIView):
@@ -184,10 +194,10 @@ class SongApproveFormView(APIView):
             action = request.data.get('action')
             if action == "approveSong":
                 artistdata = request.data.get("artist")
-                artist = Artist.objects.get(id=ObjectId(artistdata["id"]))  # <-- sửa ở đây
+                artist = Artist.objects.get(id=ObjectId(artistdata["id"]))
                 formId = request.data.get("formId")
                 SongRequest.objects(id=ObjectId(formId)).update(set__status = 1)
-                songRequest = SongRequest.objects(id=ObjectId(formId))
+                songRequest = SongRequest.objects(id=ObjectId(formId)).first()
                 new_song = Song.objects.create(
                     song_name=songRequest.title,
                     release_date=songRequest.release_date,
@@ -204,11 +214,16 @@ class SongApproveFormView(APIView):
                         artists=songRequest.cover_artists,
                         song=new_song
                     )
-                    
+
                     return JsonResponse({
                         "created ArtistOfSong": True,
                         "ArtistOfSongId": str(artist_of_song.id)
                     }, status=201)
+
+                return JsonResponse({
+                    "created Song": True,
+                    "SongId": str(new_song.id)
+                }, status=201)
 
             return JsonResponse({"error": "Unauthorized"}, status=401)
         except Exception as e:

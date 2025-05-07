@@ -56,6 +56,8 @@ const Profile = () => {
     featuredArtists: [], //Nghệ sĩ cover cùng
   });
 
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   // Khi data load xong thì cập nhật formData
   createEffect(() => {
     if (data()) {
@@ -140,6 +142,7 @@ const Profile = () => {
     }
   
     const formData = new FormData();
+    console.log("tên: "+song.title)
     formData.append("title", song.title);
     formData.append("releaseDate", song.releaseDate.toISOString().split("T")[0]);
     console.log(song.releaseDate.toISOString().split("T")[0]);
@@ -147,8 +150,10 @@ const Profile = () => {
     formData.append("musicFile", song.musicFile);
     formData.append("cover", song.cover);
 
-    song.featuredArtists.forEach(id => formData.append("featuredArtists", id));
-  
+    formData.append("featuredArtists", JSON.stringify(song.featuredArtists));
+    console.log(formData.get("title"));
+    console.log("data trước khi lên" + formData);
+
     await requestSongApproveService(formData);
     alert("Đã gửi thông tin bài hát");
     handlePopupClose();
@@ -166,7 +171,7 @@ const Profile = () => {
             <div class="flex items-center gap-6">
               <div class="relative group">
                 <img
-                  src={data().user.avatar_url || "/default-avatar.jpg"}
+                  src={`${backendUrl}${data().user.avatar_url}` || "/default-avatar.jpg"}
                   alt="Avatar"
                   class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
                   onClick={(e) => {
@@ -356,7 +361,7 @@ const Profile = () => {
                       class="cursor-pointer px-3 py-2 hover:bg-blue-100 border-b border-gray-200"
                       onClick={() => {
                         if (!newSong().featuredArtists.includes(artist.name)) {
-                          setNewSong(s => ({ ...s, featuredArtists: [...s.featuredArtists, artist.name] }));
+                          setNewSong(s => ({ ...s, featuredArtists: [...s.featuredArtists, artist] }));
                         }
                       }}
                     >

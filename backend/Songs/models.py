@@ -5,7 +5,7 @@ from Artists.models import Artist
 class Song(Document):
     song_name = StringField(max_length=255)
     release_date = StringField()  
-    duration = DateTimeField()  # Sử dụng DateTimeField cho thời lượng bài hát
+    duration = IntField()  # Sử dụng DateTimeField cho thời lượng bài hát
     song_url = StringField(max_length=255)
     picture_url = StringField(max_length=255)
     is_explicit = IntField()

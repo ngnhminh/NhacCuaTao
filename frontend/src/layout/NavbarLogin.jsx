@@ -7,14 +7,14 @@ import {
 } from 'solid-js';
 import { Logo, Home } from '../../public/Icon.jsx';
 import { logoutService, getUserInformService } from '/./services/authService';
+import {getAllArtistService, getAllSongOfArtistService} from "../../services/authService";
 import { useNavigate } from '@solidjs/router';
 import { useAuth } from '../layout/AuthContext';
+import { initFlowbite } from 'flowbite';
 
 const NavbarLogin = () => {
     const [dropdownVisible, setDropdownVisible] = createSignal(false);
-    const [avatarDropdownVisible, setAvatarDropdownVisible] =
-        createSignal(false);
-    const MEDIA_URL = 'http://localhost:8000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const auth = useAuth();
     const navigate = useNavigate();
 
@@ -24,41 +24,23 @@ const NavbarLogin = () => {
     const handleFocus = () => setDropdownVisible(true);
     const handleBlur = () => setDropdownVisible(false);
 
-    // Toggle dropdown khi bấm vào avatar
-    const toggleAvatarDropdown = (e) => {
-        e.stopPropagation();
-        setAvatarDropdownVisible(!avatarDropdownVisible());
-    };
-
-    // Đóng dropdown khi bấm ra ngoài
-    const handleOutsideClick = (e) => {
-        const dropdown = document.getElementById('dropdown');
-        const avatarButton = document.getElementById('user-menu-button');
-        if (
-            dropdown &&
-            avatarButton &&
-            !dropdown.contains(e.target) &&
-            !avatarButton.contains(e.target)
-        ) {
-            setAvatarDropdownVisible(false);
-        }
-    };
-
-    // Thêm và dọn dẹp sự kiện click
     onMount(() => {
-        document.addEventListener('click', handleOutsideClick);
+        // Khởi tạo tất cả các components của Flowbite
+        initFlowbite();
     });
 
-    onCleanup(() => {
-        document.removeEventListener('click', handleOutsideClick);
-    });
+    function MyComponent() {
+        return (
+          <Link href="/">Đi tới trang mới</Link>
+        );
+      }
 
     const logoutHandle = async () => {
         try {
             await logoutService();
             auth.setIsLoggedIn(false);
-            navigate('/');
-            setAvatarDropdownVisible(false); // Đóng dropdown khi đăng xuất
+            auth.setIsOpenProfile(false);
+            MyComponent();
         } catch (err) {
             console.log(err);
         }
@@ -71,12 +53,39 @@ const NavbarLogin = () => {
 
     const openProfileHandle = () => {
         auth.setIsOpenProfile(true);
-        setAvatarDropdownVisible(false); // Đóng dropdown khi mở profile
     };
 
-    const handleMenuItemClick = () => {
-        setAvatarDropdownVisible(false); // Đóng dropdown khi bấm vào bất kỳ mục nào
+    // Hàm tìm kiếm sử dụng debounce
+    let timer;
+    const handleSearch = (e) => {
+        navigate("/");
+        clearTimeout(timer);
+        if(!auth.isOpenSearchPage()){
+            auth.setIsOpenSearchPage(true)
+        }
+        const query = e.target.value.toLowerCase();
+        timer = setTimeout(async () => {
+            if (query.length >= 1) {
+                try {
+                    const artistList = await getAllArtistService();
+                    const songList = await getAllSongOfArtistService();
+                    const filtered = artistList.artists.filter(artist =>
+                        artist.name.toLowerCase().includes(query)
+                    );
+                    const filteredSong = songList.songs.filter(song =>
+                        song.song_name.toLowerCase().includes(query)
+                    );
+                    auth.setResults(filtered);
+                    auth.setResultsSong(filteredSong);
+                } catch (error) {
+                    console.error("Lỗi tìm nghệ sĩ:", error);
+                }
+            } else {
+                auth.setResults([]);
+            }
+        }, 300);
     };
+
 
     return (
         <header className="antialiased sticky top-0 left-0 right-0 z-999 dark:bg-base-300">
@@ -129,6 +138,7 @@ const NavbarLogin = () => {
                                     placeholder="Bạn muốn phát nội dung gì?"
                                     onFocus={handleFocus}
                                     onBlur={handleBlur}
+                                    onInput={handleSearch}
                                 />
 
                                 {dropdownVisible() && (
@@ -225,7 +235,8 @@ const NavbarLogin = () => {
                                 />
                             </svg>
                         </button>
-
+                        
+                        {/* Notification button with Flowbite dropdown */}
                         <button
                             type="button"
                             data-dropdown-toggle="notification-dropdown"
@@ -242,13 +253,40 @@ const NavbarLogin = () => {
                                 <path d="M12.133 10.632v-1.8A5.406 5.406 0 0 0 7.979 3.57.946.946 0 0 0 8 3.464V1.1a1 1 0 0 0-2 0v2.364a.946.946 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C1.867 13.018 0 13.614 0 14.807 0 15.4 0 16 .538 16h12.924C14 16 14 15.4 14 14.807c0-1.193-1.867-1.789-1.867-4.175ZM3.823 17a3.453 3.453 0 0 0 6.354 0H3.823Z" />
                             </svg>
                         </button>
+                        
+                        <div
+                            id="notification-dropdown"
+                            className="hidden z-50 w-64 bg-white rounded-lg shadow dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700"
+                        >
+                            <div className="p-3 text-sm text-gray-900 dark:text-white font-medium">
+                                Thông báo
+                            </div>
+                            <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                    >
+                                        Bạn có bài hát cần duyệt
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                    >
+                                        2 người dùng vừa đăng ký nghệ sĩ
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
 
                         <button
                             type="button"
                             className="btn btn-circle overflow-hidden mx-3 hover:scale-105 hover:brightness-110 transition-all duration-200 md:mr-0"
                             id="user-menu-button"
-                            aria-expanded={avatarDropdownVisible()}
-                            onClick={toggleAvatarDropdown}
+                            data-dropdown-toggle="user-dropdown"
+                            data-dropdown-placement="bottom-end"
                         >
                             <Show
                                 when={data()}
@@ -260,22 +298,18 @@ const NavbarLogin = () => {
                                     className="size-full object-cover"
                                     src={
                                         data().user.avatar_url
-                                            ? MEDIA_URL + data().user.avatar_url
-                                            : 'https://i.pinimg.com/474x/45/a2/2b/45a22b2285f2f60cf3a9c4739fe24b70.jpg'
+                                        ? `${backendUrl}${data().user.avatar_url}`
+                                        : "https://i.pinimg.com/474x/45/a2/2b/45a22b2285f2f60cf3a9c4739fe24b70.jpg"
                                     }
                                     alt="user photo"
-                                />
+                                    />
                             </Show>
                         </button>
 
-                        {/* Dropdown menu */}
+                        {/* User dropdown menu (hidden by default) */}
                         <div
-                            className={`z-50 w-56 text-base list-none bg-white rounded-md divide-y divide-gray-100 shadow dark:bg-base-200/95 dark:divide-gray-600 absolute top-full right-0 mt-2 transition-opacity duration-200 ease-in-out transform ${
-                                avatarDropdownVisible()
-                                    ? 'opacity-100 translate-y-0'
-                                    : 'opacity-0 -translate-y-2 hidden'
-                            }`}
-                            id="dropdown"
+                            className="hidden z-50 w-56 text-base list-none bg-white rounded-md divide-y divide-gray-100 shadow dark:bg-base-200/95 dark:divide-gray-600"
+                            id="user-dropdown"
                         >
                             <div className="py-3 px-4">
                                 <Show when={data()}>
@@ -289,16 +323,13 @@ const NavbarLogin = () => {
                             </div>
                             <ul
                                 className="py-1 text-gray-500 dark:text-gray-400"
-                                aria-labelledby="dropdown"
+                                aria-labelledby="user-dropdown"
                             >
                                 <li>
                                     <a
                                         href="#"
                                         className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-white"
-                                        onClick={() => {
-                                            openProfileHandle();
-                                            handleMenuItemClick();
-                                        }}
+                                        onClick={openProfileHandle}
                                     >
                                         My profile
                                     </a>
@@ -307,7 +338,6 @@ const NavbarLogin = () => {
                                     <a
                                         href="#"
                                         className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-white"
-                                        onClick={handleMenuItemClick}
                                     >
                                         Account settings
                                     </a>
@@ -315,13 +345,12 @@ const NavbarLogin = () => {
                             </ul>
                             <ul
                                 className="py-1 text-gray-500 dark:text-gray-400"
-                                aria-labelledby="dropdown"
+                                aria-labelledby="user-dropdown"
                             >
                                 <li>
                                     <a
                                         href="#"
                                         className="flex items-center py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={handleMenuItemClick}
                                     >
                                         <svg
                                             className="mr-2 w-4 h-4 text-gray-400"
@@ -339,7 +368,6 @@ const NavbarLogin = () => {
                                     <a
                                         href="#"
                                         className="flex items-center py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={handleMenuItemClick}
                                     >
                                         <svg
                                             className="mr-2 w-4 h-4 text-gray-400"
@@ -359,7 +387,6 @@ const NavbarLogin = () => {
                                     <a
                                         href="#"
                                         className="flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                        onClick={handleMenuItemClick}
                                     >
                                         <span className="flex items-center">
                                             <svg
@@ -369,7 +396,7 @@ const NavbarLogin = () => {
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20"
                                             >
-                                                <path d="m7.164 3.805-4.475.38L.327 6.546a1.114 1.114 0 0 0 .63 1.89l3.2.375 3.007-5.006ZM11.092 15.9l.472 3.14a1.114 1.114 0 0 0 1.89.63l2.36-2.362.38-4.475-5.102 3.067Zm8.617-14.283A1.613 1.613 0 0 0 18.383.291c-1.913-.33-5.811-.736-7.556 1.01-1.98 1.98-6.172 9.491-7.477 11.869a1.1 1.1 0 0 0 .193 1.316l.986.985.985.986a1.1 1.1 0 0 0 1.316.193c2.378-1.3 9.889-5.5 11.869-7.477 1.746-1.745 1.34-5 исследование.643 1.01-7.556Zm-3.873 6.268a2.63 2.63 0 1 1-3.72-3.72 2.63 2.63 0 0 1 3.72 3.72Z" />
+                                                <path d="m7.164 3.805-4.475.38L.327 6.546a1.114 1.114 0 0 0 .63 1.89l3.2.375 3.007-5.006ZM11.092 15.9l.472 3.14a1.114 1.114 0 0 0 1.89.63l2.36-2.362.38-4.475-5.102 3.067Zm8.617-14.283A1.613 1.613 0 0 0 18.383.291c-1.913-.33-5.811-.736-7.556 1.01-1.98 1.98-6.172 9.491-7.477 11.869a1.1 1.1 0 0 0 .193 1.316l.986.985.985.986a1.1 1.1 0 0 0 1.316.193c2.378-1.3 9.889-5.5 11.869-7.477 1.746-1.745 1.34-5.643 1.01-7.556Zm-3.873 6.268a2.63 2.63 0 1 1-3.72-3.72 2.63 2.63 0 0 1 3.72 3.72Z" />
                                             </svg>
                                             Pro version
                                         </span>
@@ -393,7 +420,7 @@ const NavbarLogin = () => {
                             </ul>
                             <ul
                                 className="py-1 text-gray-500 dark:text-gray-400"
-                                aria-labelledby="dropdown"
+                                aria-labelledby="user-dropdown"
                             >
                                 <li>
                                     <a

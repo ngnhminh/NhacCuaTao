@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { loginService } from '/./services/authService';
 import toast from 'solid-toast';
 import { A, useNavigate } from '@solidjs/router';
@@ -9,6 +9,14 @@ const Login = () => {
     const [password, setPassword] = createSignal('');
     const navigate = useNavigate();
     const auth = useAuth();
+
+    onMount(() => {
+        const token = localStorage.getItem('userToken');
+        if (token) {
+            auth.setIsLoggedIn(true);
+            navigate('/');
+        }
+      });
 
     const handleSubmit = async (e) => {
         e.preventDefault();

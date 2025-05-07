@@ -9,4 +9,4 @@ urlpatterns = [
     path('SongApproveDeleteForm/<str:id>/', SongApproveDeleteFormView.as_view(), name='delete_approve_song'),
     path('ArtistApproveForm/', ArtistApproveFormView.as_view(), name='approve_artist'),
     path('SongApproveForm/', SongApproveFormView.as_view(), name='approve_song'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] 

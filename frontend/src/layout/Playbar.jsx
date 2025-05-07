@@ -1,5 +1,6 @@
 // components/Playbar.tsx
-import { createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, onMount } from 'solid-js';
+import { useAuth } from '../layout/AuthContext';
 import {
     Play,
     Pause,
@@ -24,13 +25,42 @@ import { useActive, useFullscreen } from '../components/lib/utils';
 import { Mic } from './../../public/Icon';
 import FavouriteButton from '../components/FavouriteButton';
 import { setIsSidebarVisible } from '../signal/sidebarStore';
+import {getAllFavoriteSongIdsService, getAllPlaylistIdsService} from "../../services/authService";
 
 export default function Playbar() {
     const [isPlaying, setIsPlaying] = createSignal(false);
     const [progress, setProgress] = createSignal(40);
     const [volume, setVolume] = createSignal(70);
     const { isFullscreen, toggle } = useFullscreen();
+    const auth = useAuth();
     let audioRef;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+    const [favoriteSongIds, setFavoriteSongIds] = createSignal([]);
+      const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
+    
+      const reloadFavoriteList = async () => {
+        try{
+            const result = await getAllFavoriteSongIdsService();
+            setFavoriteSongIds(result.songList);
+        }catch (err) {
+          console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+      }
+    
+      const reloadAllPlayList = async () => {
+        try{
+            const result = await getAllPlaylistIdsService();
+            setAllPlaylistIds(result.playlistList);
+        }catch (err) {
+          console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+      }
+    
+      onMount(() => {
+        reloadFavoriteList();
+        reloadAllPlayList();
+      });
 
     const handleVolume = (e) => {
         const value = +e.target.value;
@@ -98,21 +128,27 @@ export default function Playbar() {
                         )}
                     </button>
                     <img
-                        src="https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_jpeg/covers/7/f/7fdc1a630c238af0815181f9faa190f5_1285212114.jpg"
+                        src={`${backendUrl}${auth.currentSong().picture_url}`}
                         alt="Album cover"
                         class="size-[56px] rounded-[4px]"
                     />
                 </figure>
                 <div className="flex flex-col justify-center">
                     <a href="#" className="hover:underline">
-                        <p class="text-sm font-semibold">Rock xuyên màn đêm</p>
+                        <p class="text-sm font-semibold">{auth.currentSong().song_name}</p>
                     </a>
                     <a href="#" className="hover:underline">
-                        <p class="text-xs text-zinc-400">Bức tường</p>
+                        <p class="text-xs text-zinc-400">{auth.currentSong().artist.artist_name}</p>
                     </a>
                 </div>
 
-                <FavouriteButton />
+                <FavouriteButton 
+                    songId={auth.currentSong().id} favoriteSongIds={favoriteSongIds()} 
+                    reloadFavoriteList={reloadFavoriteList} 
+                    position={"dropdown dropdown-end dropdown-bottom top-3 "}
+                    playlists = {allPlaylistIds()}
+                    reloadPlaylistList={reloadAllPlayList}
+                />
             </div>
 
             {/* Center: Controls */}
@@ -333,7 +369,7 @@ export default function Playbar() {
 
             <audio
                 ref={(el) => (audioRef = el)}
-                src="audio/Rockxuyenmandem.mp3"
+                src={`${backendUrl}${auth.currentSong().song_url}`}
                 preload="auto"
                 onTimeUpdate={() => {
                     if (audioRef && audioRef.duration) {

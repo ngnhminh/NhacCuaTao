@@ -50,7 +50,7 @@ export const getUserInform = async () => {
       console.error("Error fetching user information:", error);
     }
   } else {
-    console.error("No token found in local storage.");
+    console.log("No token found in local storage.");
   }
 };
 
