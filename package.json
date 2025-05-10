@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@rnwonder/solid-date-picker": "^1.4.1"
+  }
+}

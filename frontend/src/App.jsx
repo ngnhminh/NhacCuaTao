@@ -8,6 +8,7 @@ import Artist from './pages/Artist';
 import { AuthProvider } from './layout/AuthContext';
 import AdminLogin from './pages/AdminLogin';
 import AdminPage from './pages/AdminPage';
+import Profile from './pages/Profile';
 
 const App = () => {
     return (
@@ -18,6 +19,7 @@ const App = () => {
                     <Route path="/" component={Home} />
                     <Route path="/album" component={Album} />
                     <Route path="/artist" component={Artist} />
+                    <Route path="/profile" component={Profile} />
                 </Route>
 
                 {/* Login layout */}

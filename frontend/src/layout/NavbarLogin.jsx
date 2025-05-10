@@ -7,7 +7,10 @@ import {
 } from 'solid-js';
 import { Logo, Home } from '../../public/Icon.jsx';
 import { logoutService, getUserInformService } from '/./services/authService';
-import {getAllArtistService, getAllSongOfArtistService} from "../../services/authService";
+import {
+    getAllArtistService,
+    getAllSongOfArtistService,
+} from '../../services/authService';
 import { useNavigate } from '@solidjs/router';
 import { useAuth } from '../layout/AuthContext';
 import { initFlowbite } from 'flowbite';
@@ -30,10 +33,8 @@ const NavbarLogin = () => {
     });
 
     function MyComponent() {
-        return (
-          <Link href="/">Đi tới trang mới</Link>
-        );
-      }
+        return <Link href="/">Đi tới trang mới</Link>;
+    }
 
     const logoutHandle = async () => {
         try {
@@ -58,10 +59,10 @@ const NavbarLogin = () => {
     // Hàm tìm kiếm sử dụng debounce
     let timer;
     const handleSearch = (e) => {
-        navigate("/");
+        navigate('/');
         clearTimeout(timer);
-        if(!auth.isOpenSearchPage()){
-            auth.setIsOpenSearchPage(true)
+        if (!auth.isOpenSearchPage()) {
+            auth.setIsOpenSearchPage(true);
         }
         const query = e.target.value.toLowerCase();
         timer = setTimeout(async () => {
@@ -69,16 +70,16 @@ const NavbarLogin = () => {
                 try {
                     const artistList = await getAllArtistService();
                     const songList = await getAllSongOfArtistService();
-                    const filtered = artistList.artists.filter(artist =>
+                    const filtered = artistList.artists.filter((artist) =>
                         artist.name.toLowerCase().includes(query)
                     );
-                    const filteredSong = songList.songs.filter(song =>
+                    const filteredSong = songList.songs.filter((song) =>
                         song.song_name.toLowerCase().includes(query)
                     );
                     auth.setResults(filtered);
                     auth.setResultsSong(filteredSong);
                 } catch (error) {
-                    console.error("Lỗi tìm nghệ sĩ:", error);
+                    console.error('Lỗi tìm nghệ sĩ:', error);
                 }
             } else {
                 auth.setResults([]);
@@ -86,13 +87,12 @@ const NavbarLogin = () => {
         }, 300);
     };
 
-
     return (
         <header className="antialiased sticky top-0 left-0 right-0 z-50 dark:bg-base-300">
             <nav className="bg-black border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-base-300">
                 <div className="flex flex-wrap justify-between items-center">
                     <div className="flex justify-start items-center">
-                        <a href="" className="flex mr-4 gap-2">
+                        <a href="/" className="flex mr-4 gap-2">
                             <Logo />
                             <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
                                 Spotify
@@ -235,7 +235,7 @@ const NavbarLogin = () => {
                                 />
                             </svg>
                         </button>
-                        
+
                         {/* Notification button with Flowbite dropdown */}
                         <button
                             type="button"
@@ -253,7 +253,7 @@ const NavbarLogin = () => {
                                 <path d="M12.133 10.632v-1.8A5.406 5.406 0 0 0 7.979 3.57.946.946 0 0 0 8 3.464V1.1a1 1 0 0 0-2 0v2.364a.946.946 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C1.867 13.018 0 13.614 0 14.807 0 15.4 0 16 .538 16h12.924C14 16 14 15.4 14 14.807c0-1.193-1.867-1.789-1.867-4.175ZM3.823 17a3.453 3.453 0 0 0 6.354 0H3.823Z" />
                             </svg>
                         </button>
-                        
+
                         <div
                             id="notification-dropdown"
                             className="hidden z-50 w-64 bg-white rounded-lg shadow dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700"
@@ -298,11 +298,13 @@ const NavbarLogin = () => {
                                     className="size-full object-cover"
                                     src={
                                         data().user.avatar_url
-                                        ? `${backendUrl}${data().user.avatar_url}`
-                                        : "https://i.pinimg.com/474x/45/a2/2b/45a22b2285f2f60cf3a9c4739fe24b70.jpg"
+                                            ? `${backendUrl}${
+                                                  data().user.avatar_url
+                                              }`
+                                            : 'https://i.pinimg.com/474x/45/a2/2b/45a22b2285f2f60cf3a9c4739fe24b70.jpg'
                                     }
                                     alt="user photo"
-                                    />
+                                />
                             </Show>
                         </button>
 
@@ -327,11 +329,11 @@ const NavbarLogin = () => {
                             >
                                 <li>
                                     <a
-                                        href="#"
+                                        href="/profile"
                                         className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-white"
                                         onClick={openProfileHandle}
                                     >
-                                        My profile
+                                        Hồ sơ
                                     </a>
                                 </li>
                                 <li>
@@ -339,7 +341,7 @@ const NavbarLogin = () => {
                                         href="#"
                                         className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-400 dark:hover:text-white"
                                     >
-                                        Account settings
+                                        Cài đặt tài khoản
                                     </a>
                                 </li>
                             </ul>
@@ -361,7 +363,7 @@ const NavbarLogin = () => {
                                         >
                                             <path d="M17.947 2.053a5.209 5.209 0 0 0-3.793-1.53A6.414 6.414 0 0 0 10 2.311 6.482 6.482 0 0 0 5.824.5a5.2 5.2 0 0 0-3.8 1.521c-1.915 1.916-2.315 5.392.625 8.333l7 7a.5.5 0 0 0 .708 0l7-7a6.6 6.6 0 0 0 2.123-4.508 5.179 5.179 0 0 0-1.533-3.793Z" />
                                         </svg>
-                                        My likes
+                                        Các bài hát yêu thích
                                     </a>
                                 </li>
                                 <li>
@@ -380,7 +382,7 @@ const NavbarLogin = () => {
                                             <path d="M18 8.376a1 1 0 0 0-1 1v.163l-7 3.434-7-3.434v-.163a1 1 0 0 0-2 0v.786a1 1 0 0 0 .56.9l8 3.925a1 1 0 0 0 .88 0l8-3.925a1 1 0 0 0 .56-.9v-.786a1 1 0 0 0-1-1Z" />
                                             <path d="M17.993 13.191a1 1 0 0 0-1 1v.163l-7 3.435-7-3.435v-.163a1 1 0 1 0-2 0v.787a1 1 0 0 0 .56.9l8 3.925a1 1 0 0 0 .88 0l8-3.925a1 1 0 0 0 .56-.9v-.787a1 1 0 0 0-1-1Z" />
                                         </svg>
-                                        Collections
+                                        Bộ sưu tập
                                     </a>
                                 </li>
                                 <li>
@@ -398,7 +400,7 @@ const NavbarLogin = () => {
                                             >
                                                 <path d="m7.164 3.805-4.475.38L.327 6.546a1.114 1.114 0 0 0 .63 1.89l3.2.375 3.007-5.006ZM11.092 15.9l.472 3.14a1.114 1.114 0 0 0 1.89.63l2.36-2.362.38-4.475-5.102 3.067Zm8.617-14.283A1.613 1.613 0 0 0 18.383.291c-1.913-.33-5.811-.736-7.556 1.01-1.98 1.98-6.172 9.491-7.477 11.869a1.1 1.1 0 0 0 .193 1.316l.986.985.985.986a1.1 1.1 0 0 0 1.316.193c2.378-1.3 9.889-5.5 11.869-7.477 1.746-1.745 1.34-5.643 1.01-7.556Zm-3.873 6.268a2.63 2.63 0 1 1-3.72-3.72 2.63 2.63 0 0 1 3.72 3.72Z" />
                                             </svg>
-                                            Pro version
+                                            Phiên bản Pro
                                         </span>
                                         <svg
                                             className="w-2.5 h-2.5 text-gray-400"
@@ -428,7 +430,7 @@ const NavbarLogin = () => {
                                         className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                                         onClick={logoutHandle}
                                     >
-                                        Sign out
+                                        Đăng xuất
                                     </a>
                                 </li>
                             </ul>
