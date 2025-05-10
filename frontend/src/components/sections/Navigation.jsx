@@ -1,19 +1,19 @@
-import { createSignal, onMount, onCleanup } from 'solid-js'
+import { createSignal, onMount, onCleanup } from 'solid-js';
 
 const Navigation = (props) => {
-    const [active, setActive] = createSignal(1)
+    const [active, setActive] = createSignal(1);
 
     const items = [
         { id: 1, name: 'Tất cả' },
         { id: 2, name: 'Nhạc' },
         { id: 3, name: 'Podcast' },
-    ]
+    ];
 
     // Gắn sự kiện scroll
 
     return (
         <div
-            class={`px-8 mb-2 sticky top-0 z-50 ease-linear transition-all duration-400  
+            class={`px-8 mb-2 sticky top-0 z-40 ease-linear transition-all duration-400  
         ${props.scrolled?.() ? 'bg-base-200 shadow-md' : 'bg-transparent'}`}
         >
             <div class="navbar gap-2">
@@ -32,7 +32,7 @@ const Navigation = (props) => {
                 ))}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Navigation
+export default Navigation;

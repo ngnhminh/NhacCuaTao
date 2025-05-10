@@ -1,5 +1,5 @@
 import { createSignal, Show } from "solid-js";
-import ApproveSongs from "../components/admin/ApproveSongs";
+import ApproveSongs from "../components/admin/approveSongs";
 import ApproveArtists from "../components/admin/ApproveArtists";
 import UserManagement from "../components/admin/UserManagement";
 import SongManagement from "../components/admin/SongManagement";

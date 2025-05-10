@@ -50,7 +50,7 @@ export const getUserInform = async () => {
       console.error("Error fetching user information:", error);
     }
   } else {
-    console.error("No token found in local storage.");
+    console.log("No token found in local storage.");
   }
 };
 
@@ -72,6 +72,32 @@ export const uploadAvatar = async (formData) => {
   } catch (error) {
     console.error("Upload avatar error:", error);
     throw error;
+  }
+};
+
+export const updateArtistInform = async (formData) => {
+  const token = localStorage.getItem("userToken");
+  if (!token) return;
+
+  try {
+    const response = await axios.post(
+        `${API_URL}/api/artists/ArtistUpdateView/`,
+        {
+            full_name: formData.full_name,
+            description: formData.description,
+            country: formData.country,
+            action: "updateArtistInform" 
+        },
+        {
+            headers: {
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+  } catch (error) {
+      console.error("API Error:", error.message);
+      throw new Error("Failed to request");
   }
 };
 

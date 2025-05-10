@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { loginService } from '/./services/authService';
 import toast from 'solid-toast';
 import { A, useNavigate } from '@solidjs/router';
@@ -9,6 +9,14 @@ const Login = () => {
     const [password, setPassword] = createSignal('');
     const navigate = useNavigate();
     const auth = useAuth();
+
+    onMount(() => {
+        const token = localStorage.getItem('userToken');
+        if (token) {
+            auth.setIsLoggedIn(true);
+            navigate('/');
+        }
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -34,7 +42,7 @@ const Login = () => {
     return (
         <>
             <div className="flex flex-col min-h-screen">
-                <header class="flex pt-8 pb-6 min-h-16 items-center justify-center">
+                <header class="flex pt-8 pb-6 min-h-16 items-center justify-center bg-[#1f1f1f]">
                     <div class="h-10">
                         <svg
                             role="img"
@@ -55,7 +63,7 @@ const Login = () => {
                     </div>
                 </header>
 
-                <main className="flex-grow pt-24">
+                <main className="flex-grow pt-24 bg-[#1f1f1f]">
                     <section class="flex items-center justify-center bg-[#1f1f1f]">
                         <div class="bg-[#1f1f1f] px-8 w-[324px] box-content">
                             <header className="mb-10 text-center">
@@ -70,7 +78,7 @@ const Login = () => {
                                     value={email()}
                                     onInput={(e) => setEmail(e.target.value)}
                                     class="w-full bg-[#1f1f1f] h-12 p-3 border border-[#555555] rounded-[4px]"
-                                    placeholder="Enter your email"
+                                    placeholder="Nhập email của bạn"
                                     required
                                 />
 
@@ -80,7 +88,7 @@ const Login = () => {
                                     value={password()}
                                     onInput={(e) => setPassword(e.target.value)}
                                     class="w-full bg-[#1f1f1f] h-12 p-3 border border-[#555555] rounded-[4px]"
-                                    placeholder="Enter your password"
+                                    placeholder="Nhập mật khẩu của bạn"
                                     required
                                 />
 
@@ -108,7 +116,7 @@ const Login = () => {
                     </section>
                 </main>
 
-                <footer className="p-6">
+                <footer className="p-6 bg-[#1f1f1f]">
                     <span className="block text-center text-[12px] leading-[0.7] text-[#b3b3b3]">
                         <p>
                             This site is protected by reCAPTCHA and the Google

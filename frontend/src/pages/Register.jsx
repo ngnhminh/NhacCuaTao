@@ -27,7 +27,7 @@ export default function RegisterPage() {
     return (
         <>
             <div className="flex flex-col min-h-screen">
-                <header class="flex pt-8 pb-6 min-h-16 items-center justify-center">
+                <header class="flex pt-8 pb-6 min-h-16 items-center justify-center bg-[#1f1f1f]">
                     <div class="h-10">
                         <svg
                             role="img"
@@ -48,7 +48,7 @@ export default function RegisterPage() {
                     </div>
                 </header>
 
-                <main className="flex-grow">
+                <main className="flex-grow bg-[#1f1f1f]">
                     <section class="flex items-center justify-center bg-[#1f1f1f]">
                         <div class="bg-[#1f1f1f] px-8 w-[324px] box-content">
                             <header className="mb-10 text-center">
@@ -114,7 +114,7 @@ export default function RegisterPage() {
                     </section>
                 </main>
 
-                <footer className="p-6">
+                <footer className="p-6 bg-[#1f1f1f]">
                     <span className="block text-center text-[12px] leading-[0.7] text-[#b3b3b3]">
                         <p>
                             This site is protected by reCAPTCHA and the Google

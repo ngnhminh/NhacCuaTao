@@ -6,3 +6,6 @@ from Songs.models import Song
 class SongInPlaylist(Document):
     playlist = ReferenceField(Playlist, required=True)  
     song = ReferenceField(Song, required=True)  
+    meta = {
+        'collection': 'SongInPlaylist'
+    }

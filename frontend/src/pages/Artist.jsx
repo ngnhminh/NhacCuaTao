@@ -29,7 +29,7 @@ const items = [
     },
 ];
 
-const Album = () => {
+const Artist = () => {
     let scrollContainer;
     const [scrolled, setScrolled] = createSignal(false);
     const { isOpenProfile } = useAuth();
@@ -105,4 +105,4 @@ const Album = () => {
     );
 };
 
-export default Album;
+export default Artist;

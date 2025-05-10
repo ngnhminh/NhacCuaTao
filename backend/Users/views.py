@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.http import JsonResponse
 from .models import User
+from Artists.models import Artist
 from AuthToken.models import AuthToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -97,12 +98,29 @@ class OrtherActionView(APIView):
                         auth_token = AuthToken.objects.filter(token=token).first()
                         if auth_token:
                             user = auth_token.user
+                            artist = Artist.objects.filter(user=user).first()
                             user_data = {
                                 "full_name": user.full_name,
                                 "email": user.email,
                                 "avatar_url": user.avatar_url
                             }
-                            return JsonResponse({"user": user_data}, status=200)
+                            if artist:
+                                return JsonResponse({
+                                    "is_artist": True,
+                                    "artist": {
+                                        "artist_name": artist.artist_name,
+                                        "description": artist.description,
+                                        "country": artist.country,
+                                        "followers": artist.followers,
+                                    },
+                                    "user": user_data
+                                }, status = 200)
+                            else:
+                                return JsonResponse({
+                                    "is_artist": False,
+                                    "artist": None,
+                                    "user": user_data
+                                })
                 return Response({"error": "Token missing or invalid"}, status=400)    
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)

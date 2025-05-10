@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext';
 
 const MainLayout = (props) => {
     const { isLoggedIn } = useAuth();
-
+    const { currentSong } = useAuth();
     return (
         <div class="block">
             <Show
@@ -22,7 +22,7 @@ const MainLayout = (props) => {
                 <>
                     <NavbarLogin />
                     <main>{props.children}</main>
-                    <Playbar />
+                    {currentSong() && <Playbar />}
                 </>
             </Show>
         </div>

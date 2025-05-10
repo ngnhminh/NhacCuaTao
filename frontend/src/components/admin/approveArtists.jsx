@@ -35,10 +35,10 @@ export default function ApproveArtists() {
 
   const [selectedArtistId, setSelectedArtistId] = createSignal(null);
 
-  const approveArtist = async (user, name) => {
+  const approveArtist = async (user, name, formId) => {
     setLoading(true);
     try{
-      const result = await approveArtistService(user, name);
+      const result = await approveArtistService(user, name, formId);
       if(result){
         alert("Duyệt thành công");
         await getData();
@@ -129,33 +129,38 @@ export default function ApproveArtists() {
                             </div>
                       
                             {/* Ô nhập tên nghệ sĩ */}
-                            <div>
-                              <label class="block text-sm font-medium text-gray-700">Tên nghệ sĩ</label>
-                              <input
-                                type="text"
-                                value={artistName()}
-                                onInput={(e) => setArtistName(e.target.value)}
-                              />
-                              {artistError() && (
-                                <p class="text-red-600 text-sm mt-1">{artistError()}</p>
-                              )}
-                            </div>
-                      
+                            {form.status === 1 ? 
+                              <span class={`inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800`}>Đã duyệt</span>
+                              :
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700">Tên nghệ sĩ</label>
+                                <input
+                                  type="text"
+                                  value={artistName()}
+                                  onInput={(e) => setArtistName(e.target.value)}
+                                />
+                                {artistError() && (
+                                  <p class="text-red-600 text-sm mt-1">{artistError()}</p>
+                                )}
+                              </div>
+                            }
+                            
                             <div class="space-x-2">
-                            <button
-                              onClick={() => {
-                                if (!artistName().trim()) {
-                                  setArtistError("Tên nghệ sĩ không được để trống");
-                                  return;
-                                }
-                                setArtistError('');
-                                approveArtist(form.user, artistName());
-                              }}
-                              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                            >
-                              Xác nhận duyệt
-                            </button>
-
+                              {form.status !== 1 && (
+                                <button
+                                  onClick={() => {
+                                    if (!artistName().trim()) {
+                                      setArtistError("Tên nghệ sĩ không được để trống");
+                                      return;
+                                    }
+                                    setArtistError('');
+                                    approveArtist(form.user, artistName(), form.id);
+                                  }}
+                                  class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                                >
+                                  Xác nhận duyệt
+                                </button>
+                              )}
                               <button
                                 onClick={cancelApproval}
                                 class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
