@@ -10,6 +10,7 @@ from bson import ObjectId
 from mongoengine.errors import DoesNotExist, ValidationError
 from bson.errors import InvalidId
 from django.core.exceptions import ObjectDoesNotExist
+from ArtistOfSong.models import ArtistOfSong
 
 class FavoriteSongGetView(APIView):
    def get(self, request):
@@ -42,20 +43,56 @@ class FavoriteSongGetView(APIView):
 
                     if auth_token:
                         user = auth_token.user
-                        favSongList = FavoriteSongs.objects.filter(user=user)
-                        
+                        fav_song_list = FavoriteSongs.objects(user=user).select_related()
+
+                        song_ids = [fs.song.id for fs in fav_song_list]
+
+                        # Truy tất cả các ArtistOfSong liên quan
+                        artist_of_song_list = ArtistOfSong.objects(song__in=song_ids).select_related()
+
+                        # Tạo dict ánh xạ song_id -> list nghệ sĩ
+                        artists_data = {
+                            aos.song.id: [
+                                {"id": str(artist.id), "artist_name": artist.artist_name}
+                                for artist in aos.artists
+                            ]
+                            for aos in artist_of_song_list
+                        }
+
                         fav_songs_data = [
                             {
-                                "song_id": str(data.song.id),
+                                "song_id": str(fs.song.id),
+                                "song_name": fs.song.song_name,
+                                "duration": fs.song.duration,
+                                "song_url": fs.song.song_url,
+                                "picture_url": fs.song.picture_url,
+                                "listion_count": fs.song.listen_count,
+                                "artists": artists_data.get(fs.song.id, []),
+                                "artist": {
+                                    "artist_name": fs.song.artist.artist_name if fs.song.artist else ""
+                                }
                             }
-                            for data in favSongList
+                            for fs in fav_song_list
                         ]
-                        
-                        return JsonResponse({
-                                "songList": fav_songs_data,
-                            }, status=201)
+                        return JsonResponse({"songList": fav_songs_data}, status=201)
                     return JsonResponse({"error": "Unauthorized"}, status=401)
                 
+            if action == "getFavListInform":
+                auth_header = request.headers.get('Authorization')
+                if auth_header and auth_header.startswith("Token "):
+                    token = auth_header.split(' ')[1]
+                    auth_token = AuthToken.objects.filter(token=token).first()
+
+                    if auth_token:
+                        user = auth_token.user
+                        favlistInform_data = {
+                                "full_name": str(user.full_name),
+                                "avatar_url": user.avatar_url,
+                                "song_number": FavoriteSongs.objects.filter(user=user).count(),
+                                "songs_duration": sum([sip.song.duration for sip in FavoriteSongs.objects.filter(user=user)])
+                            }
+                        return JsonResponse({"favoriteListInform": favlistInform_data}, status=201)
+                return JsonResponse({"error": "Unauthorized"}, status=401)
        except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
         

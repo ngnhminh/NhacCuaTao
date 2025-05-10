@@ -5,8 +5,10 @@
 @plugin "daisyui" {
     themes: forest --default;
 }
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 body {
-  font-family: 'Spotify Circular', sans-serif; /* Sans-serif là font fallback */
+  font-family: 'Montserrat', sans-serif; /* Sans-serif là font fallback */
   background-color: #000;
   color: #fff;
 }
@@ -127,18 +129,4 @@ body.force-grabbing * {
 #dropdown:not(.hidden) {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* styles.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-html {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
 }

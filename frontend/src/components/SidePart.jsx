@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createSignal, onCleanup, onMount, For, Show } from 'solid-js';
 import SidebarResizer from './SidebarResizer';
 import { Menu } from '../../public/Icon';
 import { Plus, Search, X } from 'lucide-solid';
@@ -6,8 +6,10 @@ import { highlightMatch } from './lib/utils';
 import SidebarToggleButton from './SidebarToggleButton';
 import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js';
 import { initFlowbite } from 'flowbite';
-import {createPlaylistService} from "../../services/authService";
+import {createPlaylistService, getAllPlaylistIdsService} from "../../services/authService";
+import { useNavigate } from "@solidjs/router";
 
+// Dữ liệu mẫu cho nghệ sĩ
 const artists = [
     {
         name: 'Đạt G',
@@ -53,10 +55,28 @@ const artists = [
     },
     {
         name: 'Guilty Gear Strive',
-        type: 'Danh sách phát',
+        type: 'Nghệ sĩ',
         img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
         date: '16 thg 6, 2024',
     },
+];
+
+// Placeholder cho dữ liệu playlist
+const placeholderPlaylists = [
+    {
+        id: 1,
+        name: 'Playlist của tôi #1',
+        type: 'Danh sách phát',
+        img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
+        date: '10 thg 5, 2024',
+    },
+    {
+        id: 2,
+        name: 'Nhạc chill cuối tuần',
+        type: 'Danh sách phát',
+        img: 'https://i.scdn.co/image/ab67616d0000b27394c9217a398f5174757c0c78',
+        date: '12 thg 5, 2024',
+    }
 ];
 
 const SidePart = () => {
@@ -64,12 +84,43 @@ const SidePart = () => {
     const [sidebarWidth, setSidebarWidth] = createSignal('405px');
     const [isNarrow, setIsNarrow] = createSignal(false);
     const [searchField, setSearchField] = createSignal(false);
-    const [select, setSelect] = createSignal(true);
+    const [viewMode, setViewMode] = createSignal('artists'); // 'artists' hoặc 'playlists'
     const [searchQuery, setSearchQuery] = createSignal('');
+    const [playlists, setPlaylists] = createSignal(placeholderPlaylists);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const defaultplaylist = import.meta.env.default_playlist_img;
+    const navigate = useNavigate();
 
     onMount(() => {
         initFlowbite();
+        loadPlaylists();
     });
+
+    const loadPlaylists = async () => {
+        try {
+            const result = await getAllPlaylistIdsService();
+            if (result && Array.isArray(result.playlistList)) {
+                const formattedPlaylists = result.playlistList.map(playlist => ({
+                    id: playlist.id,
+                    name: playlist.playlist_name || `Playlist #${playlist.id}`,
+                    type: 'Danh sách phát',
+                    img: playlist.playlist_picture || "http://localhost:8000/media/playlistsImg/OIP.jpg",
+                    onclick: () => handleOpenPlaylist(playlist.id),
+                }));
+                //đưa lên đầu
+                formattedPlaylists.unshift({
+                    name: "Bài hát đã thích",
+                    type: 'Danh sách phát',
+                    img: "http://localhost:8000/media/playlistsImg/OIP.jpg",
+                    onclick: () => handleOpenFavlist(), 
+                });
+                
+                setPlaylists(formattedPlaylists);               
+            }
+        } catch (err) {
+            console.error("Lỗi khi tải danh sách playlist:", err);
+        }
+    };
 
     const toggleSidebar = () => {
         const currentWidth = sidebarRef?.offsetWidth || 0;
@@ -101,22 +152,38 @@ const SidePart = () => {
         onCleanup(() => observer.disconnect());
     });
 
-    // Lọc danh sách nghệ sĩ dựa trên giá trị tìm kiếm
-    const filteredArtists = () => {
+    // Lọc danh sách nghệ sĩ hoặc playlist dựa trên giá trị tìm kiếm
+    const filteredItems = () => {
         const query = searchQuery().toLowerCase();
-        return artists.filter((artist) =>
-            artist.name.toLowerCase().includes(query)
-        );
+        
+        if (viewMode() === 'artists') {
+            return artists.filter(artist => 
+                artist.name.toLowerCase().includes(query)
+            );
+        } else {
+            return playlists().filter(playlist => 
+                playlist.name.toLowerCase().includes(query)
+            );
+        }
     };
 
-    const createPlaylist = async () =>{
-        try{
+    const createPlaylist = async () => {
+        try {
             const result = await createPlaylistService();
-            console.log("Tạo playlist thành công" + result)
-            alert("Tạo playlist Thành công")
-        }catch(err){
-            console.error(err);
+            console.log("Tạo playlist thành công", result);
+            alert("Tạo playlist thành công");
+            await loadPlaylists(); // Tải lại danh sách playlist sau khi tạo mới
+        } catch (err) {
+            console.error("Lỗi khi tạo playlist:", err);
         }
+    }
+
+    const handleOpenPlaylist = (id) => {
+        navigate(`/playlist/${id}`)
+    }
+
+    const handleOpenFavlist = () => {
+        navigate(`/favorite`)
     }
     
     return (
@@ -136,7 +203,7 @@ const SidePart = () => {
                 <div
                     className={`flex flex-col items-stretch space-y-3 relative py-4  ${
                         isMinimalView() ? 'px-1' : 'px-4'
-                    } h-full  dark:bg-base-200 `}
+                    } h-full dark:bg-base-200`}
                 >
                     <div
                         className={`flex items-center justify-between ${
@@ -179,14 +246,14 @@ const SidePart = () => {
                             class="text-base-content whitespace-nowrap scrollbar overflow-auto
             [&::-webkit-scrollbar]:w-8"
                         >
-                            <For each={artists}>
-                                {(artist) => (
+                            <For each={viewMode() === 'artists' ? artists : playlists()}>
+                                {(item) => (
                                     <div class="flex items-center hover:bg-base-100 cursor-pointer justify-center rounded-lg box-content p-2">
                                         <img
-                                            src={artist.img}
-                                            alt={artist.name}
-                                            class={`size-12 object-cover ${
-                                                artist.type === 'Danh sách phát'
+                                            src={item.img}
+                                            alt={item.name}
+                                            class={`size-12 object-cover text-white${
+                                                item.type === 'Danh sách phát'
                                                     ? 'rounded-md'
                                                     : 'rounded-full'
                                             }`}
@@ -202,34 +269,34 @@ const SidePart = () => {
                                     isNarrow() ? 'flex-col gap-2' : 'gap-1'
                                 }`}
                             >
-                                <div className="flex gap-2 items-center ">
+                                <div className="flex gap-2 items-center">
                                     <button
                                         className={`btn btn-circle size-9 btn-soft btn-primary transition-all ease-initial duration-200 ${
-                                            select() ? '' : 'w-0 opacity-0'
+                                            viewMode() !== '' ? '' : 'w-0 opacity-0'
                                         }`}
-                                        onClick={() => setSelect(false)}
+                                        onClick={() => setViewMode('')}
                                     >
                                         <X />
                                     </button>
 
                                     <button
                                         className={`btn ${
-                                            select()
+                                            viewMode() === 'artists'
                                                 ? 'text-primary-content bg-neutral-content'
                                                 : 'btn-soft'
-                                        } transition-all duration-150 h-9  hover:bg-white/50 `}
-                                        onClick={() => setSelect(true)}
+                                        } transition-all duration-150 h-9 hover:bg-white/50`}
+                                        onClick={() => setViewMode('artists')}
                                     >
                                         Nghệ sĩ
                                     </button>
 
                                     <button
                                         className={`btn ${
-                                            select()
+                                            viewMode() === 'playlists'
                                                 ? 'text-primary-content bg-neutral-content'
                                                 : 'btn-soft'
-                                        } transition-all duration-150 h-9  hover:bg-white/50 `}
-                                        onClick={() => setSelect(true)}
+                                        } transition-all duration-150 h-9 hover:bg-white/50`}
+                                        onClick={() => setViewMode('playlists')}
                                     >
                                         Danh sách phát
                                     </button>
@@ -238,7 +305,7 @@ const SidePart = () => {
                                 <div
                                     className={`flex flex-1 justify-between items-center ${
                                         isNarrow() ? '' : ' justify-end'
-                                    } `}
+                                    }`}
                                 >
                                     <label
                                         className={`input w-fit transition-all duration-300 ease-out ${
@@ -247,7 +314,7 @@ const SidePart = () => {
                                                 : 'bg-transparent'
                                         } ${
                                             isNarrow() ? '' : 'flex-row-reverse'
-                                        } hover:bg-base-100 cursor-pointer gap-0 border-none  !outline-none`}
+                                        } hover:bg-base-100 cursor-pointer gap-0 border-none !outline-none`}
                                     >
                                         <button
                                             onClick={() =>
@@ -267,9 +334,9 @@ const SidePart = () => {
                                                 searchField()
                                                     ? 'w-full ml-2 pl-2'
                                                     : 'w-0 opacity-0'
-                                            } `}
+                                            }`}
                                             required
-                                            placeholder="Tìm kiếm tại Thư viện"
+                                            placeholder={`Tìm ${viewMode() === 'artists' ? 'nghệ sĩ' : 'playlist'}`}
                                         />
                                     </label>
                                     <button className="p-0 btn btn-ghost hover:bg-transparent border-none hover:scale-108 transition-all duration-100">
@@ -292,46 +359,64 @@ const SidePart = () => {
                             )}
 
                             <div class="text-base-content whitespace-nowrap -ml-2 scrollbar overflow-auto">
-                                <For each={filteredArtists()}>
-                                    {(artist) => (
-                                        <div
-                                            class={`grid ${
-                                                isNarrow()
-                                                    ? 'grid-cols-1'
-                                                    : 'grid-cols-3'
-                                            } items-center py-2 px-3 rounded-lg cursor-pointer hover:bg-base-100 transition`}
-                                        >
-                                            <div class="flex items-center space-x-3">
-                                                <img
-                                                    src={artist.img}
-                                                    alt={artist.name}
-                                                    class={`size-12 object-cover ${
-                                                        artist.type ===
-                                                        'Danh sách phát'
-                                                            ? 'rounded-md'
-                                                            : 'rounded-full'
-                                                    }`}
-                                                />
-                                                <div>
-                                                    <span class="line-clamp-1 text-white">
-                                                        {highlightMatch(
-                                                            artist.name,
-                                                            searchQuery()
-                                                        )}
-                                                    </span>
-                                                    <span className="text-[#b3b3b3] text-sm">
-                                                        {artist.type}
-                                                    </span>
+                                <Show when={filteredItems().length > 0} fallback={
+                                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                                        <p class="text-base-content/60">
+                                            {viewMode() === 'artists' 
+                                                ? 'Không tìm thấy nghệ sĩ nào' 
+                                                : 'Không tìm thấy danh sách phát nào'}
+                                        </p>
+                                        {viewMode() === 'playlists' && (
+                                            <button 
+                                                onClick={createPlaylist}
+                                                class="btn btn-primary btn-sm mt-4"
+                                            >
+                                                Tạo playlist mới
+                                            </button>
+                                        )}
+                                    </div>
+                                }>  
+                                    {/* Render danh sách các list */}
+                                    <For each={filteredItems()}>
+                                        {(item) => (
+                                            <div
+                                                class={`grid ${
+                                                    isNarrow()
+                                                        ? 'grid-cols-1'
+                                                        : 'grid-cols-3'
+                                                } items-center py-2 px-3 rounded-lg cursor-pointer hover:bg-base-100 transition`}
+                                            >
+                                                <div class="flex items-center space-x-3" onclick = {item.onclick}>
+                                                    <img
+                                                        src={item.img}
+                                                        alt={item.name}
+                                                        class={`size-12 object-cover ${
+                                                            item.type === 'Danh sách phát'
+                                                                ? 'rounded-md'
+                                                                : 'rounded-full'
+                                                        }`}
+                                                    />
+                                                    <div>
+                                                        <span class="line-clamp-1 text-white">
+                                                            {highlightMatch(
+                                                                item.name,
+                                                                searchQuery()
+                                                            )}
+                                                        </span>
+                                                        <span className="text-[#b3b3b3] text-sm">
+                                                            {item.type}
+                                                        </span>
+                                                    </div>
                                                 </div>
+                                                {!isNarrow() && (
+                                                    <div className="flex justify-center text-sm items-center">
+                                                        {item.date}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {!isNarrow() && (
-                                                <div className="flex justify-center text-sm items-center">
-                                                    {artist.date}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </For>
+                                        )}
+                                    </For>
+                                </Show>
                             </div>
                         </>
                     )}

@@ -70,7 +70,7 @@ export default function FavouriteButton(props) {
           // Nếu chưa thích → hiện nút +
           <button
             onClick={handlePlusClick}
-            class="btn p-0 bg-transparent border-none hover:scale-110 hover:text-white hover:fill-white flex flex-col items-center fill-base-content"
+            class={`btn p-0 bg-transparent border-none hover:scale-110 hover:text-white hover:fill-white flex flex-col items-center fill-base-content ${props.className}`}
           >
             <CirclePlus size={18} />
           </button>
@@ -79,7 +79,7 @@ export default function FavouriteButton(props) {
         {/* Nếu đã thích → hiện nút Check */}
         <button
           onClick={handleCheckClick}
-          class="btn btn-circle size-fit p-[1px] bg-primary border-none text-base-300 flex flex-col items-center fill-base-content"
+          class="btn btn-circle size-fit p-[1px] bg-primary border-none text-base-300 flex flex-col items-center fill-base-content mr-3 text-[#b3b3b3]"
         >
           <Check size={16} stroke-width={3} />
         </button>

@@ -4,6 +4,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Album from './pages/Album';
+import Playlist from './pages/Playlist';
+import FavoriteListPage from './pages/FavoriteListPage';
 import Artist from './pages/Artist';
 import { AuthProvider } from './layout/AuthContext';
 import AdminLogin from './pages/AdminLogin';
@@ -16,8 +18,10 @@ const App = () => {
                 {/* Layout chính */}
                 <Route path="/" component={MainLayout}>
                     <Route path="/" component={Home} />
-                    <Route path="/album" component={Album} />
-                    <Route path="/artist" component={Artist} />
+                    <Route path="/album/:id" component={Album} />
+                    <Route path="/artist/:id" component={Artist} />
+                    <Route path="/playlist/:id" component={Playlist} />
+                    <Route path="/favorite" component={FavoriteListPage} />
                 </Route>
 
                 {/* Login layout */}

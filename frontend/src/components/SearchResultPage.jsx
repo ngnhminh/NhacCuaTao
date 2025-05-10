@@ -1,11 +1,13 @@
-import { createSignal, onMount} from "solid-js";
+import { createSignal, onMount, } from "solid-js";
 import { useAuth } from '../layout/AuthContext';
 import FavouriteButton from '../components/FavouriteButton';
 import {getAllFavoriteSongIdsService, getAllPlaylistIdsService} from "../../services/authService";
+import { useNavigate } from "@solidjs/router";
 
 const SearchResultPage = () => {
   const auth = useAuth();
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const navigate = useNavigate();
 
   const [favoriteSongIds, setFavoriteSongIds] = createSignal([]);
   const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
@@ -18,6 +20,13 @@ const SearchResultPage = () => {
       console.error("Lỗi khi load danh sách yêu thích:", err);
     }
   }
+
+  //Hàm chuyển đổi thời gian
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
 
   const reloadAllPlayList = async () => {
     try{
@@ -88,13 +97,22 @@ const SearchResultPage = () => {
         <div class="w-1/3">
           <h2 class="text-2xl font-bold mb-4">Top result</h2>
           {auth.results().map((artist)=>(
-            <div class="bg-zinc-900 rounded-lg p-6 flex flex-col items-center">
-              <div class="h-40 w-40 rounded-full overflow-hidden mb-4">
-                <img src={`${backendUrl}${artist.user.avatar_url}`} alt="Artist profile" class="w-full h-full object-cover" />
+            <div
+              class="rounded-lg p-1 cursor-pointer transition duration-200 hover:brightness-130"
+              onClick={() => navigate(`/artist/${artist.id}`)}
+            >
+              <div class="bg-zinc-900 rounded-lg p-6 flex flex-col items-center">
+                <div class="h-40 w-40 rounded-full overflow-hidden mb-4">
+                  <img
+                    src={`${backendUrl}${artist.user.avatar_url}`}
+                    alt="Artist profile"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <h1 class="text-3xl font-bold mb-1">{artist.name}</h1>
+                <p class="text-gray-400">Artist</p>
               </div>
-              <h1 class="text-3xl font-bold mb-1">{artist.name}</h1>
-              <p class="text-gray-400">Artist</p>
-            </div>
+          </div>
           ))}
         </div>
 
@@ -122,14 +140,15 @@ const SearchResultPage = () => {
                   </p>
                 </div>
                 <div class="flex items-center gap-4">
-                  <FavouriteButton 
+                  <FavouriteButton
+                    className="text-[#b3b3b3] cursor-pointer py-2 mr-3 opacity-0 group-hover:opacity-100"
                     songId={song.id} favoriteSongIds={favoriteSongIds()} 
                     reloadFavoriteList={reloadFavoriteList} 
                     position={"dropdown dropdown-end dropdown-bottom top-3 "}
                     playlists = {allPlaylistIds()}
                     reloadPlaylistList={reloadAllPlayList}
                   />
-                  <span class="text-gray-400">{song.duration}</span>
+                  <span class="text-gray-400">{formatTime(song.duration)}</span>
                   <button class="p-2 rounded-full hover:bg-zinc-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />

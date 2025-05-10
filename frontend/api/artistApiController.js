@@ -13,3 +13,17 @@ export const getAllArtist = async () => {
         console.error("Error lấy danh sách duyệt nghệ sĩ:", error);
     }
 };
+
+export const getArtistInform = async (id) => {
+    try {
+    const response = await axios.get(`${API_URL}/api/artists/ArtistGetView/`, {
+        params: {
+            action: "getArtistInform",
+            artistId: id
+        }
+    });      
+    return response.data;
+    } catch (error) {
+        console.error("Error lấy danh sách duyệt nghệ sĩ:", error);
+    }
+};

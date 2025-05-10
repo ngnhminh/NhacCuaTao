@@ -25,42 +25,87 @@ import { useActive, useFullscreen } from '../components/lib/utils';
 import { Mic } from './../../public/Icon';
 import FavouriteButton from '../components/FavouriteButton';
 import { setIsSidebarVisible } from '../signal/sidebarStore';
-import {getAllFavoriteSongIdsService, getAllPlaylistIdsService} from "../../services/authService";
+import {getAllFavoriteSongIdsService, getAllPlaylistIdsService, increaseViewCountService} from "../../services/authService";
 
 export default function Playbar() {
     const [isPlaying, setIsPlaying] = createSignal(false);
-    const [progress, setProgress] = createSignal(40);
+    const [progress, setProgress] = createSignal(0);
     const [volume, setVolume] = createSignal(70);
     const { isFullscreen, toggle } = useFullscreen();
     const auth = useAuth();
-    let audioRef;
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     const [favoriteSongIds, setFavoriteSongIds] = createSignal([]);
-      const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
+    const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
     
-      const reloadFavoriteList = async () => {
+    const [currentTime, setCurrentTime] = createSignal(0);
+    const [duration, setDuration] = createSignal(0);
+    const [hasCounted, setHasCounted] = createSignal(false);
+
+    // Ref cho audio element
+    let audioRef;
+
+    const reloadFavoriteList = async () => {
         try{
             const result = await getAllFavoriteSongIdsService();
             setFavoriteSongIds(result.songList);
         }catch (err) {
-          console.error("Lỗi khi load danh sách yêu thích:", err);
+            console.error("Lỗi khi load danh sách yêu thích:", err);
         }
-      }
+    }
     
-      const reloadAllPlayList = async () => {
+    const reloadAllPlayList = async () => {
         try{
             const result = await getAllPlaylistIdsService();
             setAllPlaylistIds(result.playlistList);
         }catch (err) {
-          console.error("Lỗi khi load danh sách yêu thích:", err);
+            console.error("Lỗi khi load danh sách playlist:", err);
         }
-      }
-    
-      onMount(() => {
+    }
+      
+    //Hàm tăng lượt nghe
+    createEffect(() => {
+        if (currentTime() >= 2 && !hasCounted()) {
+            increaseViewCount(auth.currentSong().id);
+            setHasCounted(true);
+        }
+    });
+
+    onMount(() => {
         reloadFavoriteList();
         reloadAllPlayList();
-      });
+        
+        // Đặt âm lượng ban đầu cho audio
+        if (audioRef) {
+            audioRef.volume = volume() / 100;
+        }
+    });
+
+    // Reset hasCounted khi thay đổi bài hát
+    createEffect(() => {
+        // Theo dõi thay đổi của currentSong
+        auth.currentSong();
+        setHasCounted(false);
+        setCurrentTime(0);
+        setProgress(0);
+        
+        // Tự động phát khi thay đổi bài hát nếu đang trong trạng thái phát
+        if (isPlaying() && audioRef) {
+            audioRef.play().catch(err => {
+                console.error("Lỗi khi tự động phát bài hát mới:", err);
+                setIsPlaying(false);
+            });
+        }
+    });
+
+    //Tăng lượt nghe
+    const increaseViewCount = async (id) => {
+        try{
+            const result = await increaseViewCountService(id);
+        }catch(error){
+            console.error("Thêm lượt nghe thất bại:", error);
+        }
+    }
 
     const handleVolume = (e) => {
         const value = +e.target.value;
@@ -89,6 +134,11 @@ export default function Playbar() {
 
     const toggleReplayMode = () => {
         setReplayMode((prev) => (prev + 1) % 3); // loop 0 -> 1 -> 2 -> 0...
+        
+        // Cập nhật thuộc tính loop của audio element
+        if (audioRef) {
+            audioRef.loop = replayMode() === 2; // Chỉ lặp lại nếu ở chế độ "one"
+        }
     };
 
     const togglePlay = () => {
@@ -98,19 +148,46 @@ export default function Playbar() {
             audioRef.pause();
             setIsPlaying(false);
         } else {
-            audioRef.play();
+            audioRef.play().catch(err => {
+                console.error("Lỗi khi phát nhạc:", err);
+                setIsPlaying(false);
+            });
             setIsPlaying(true);
         }
     };
+    
+    // Xử lý chuyển bài trước đó
+    const handlePrevious = () => {
+        // Implement logic to play previous song
+        // Ví dụ: auth.playPreviousSong();
+        console.log("Chuyển đến bài hát trước");
+    };
+    
+    // Xử lý chuyển bài tiếp theo
+    const handleNext = () => {
+        // Implement logic to play next song
+        // Ví dụ: auth.playNextSong();
+        console.log("Chuyển đến bài hát tiếp theo");
+    };
+
+    // Xử lý khi một bài hát phát xong
+    const handleAudioEnded = () => {
+        setIsPlaying(false);
+        
+        // Nếu ở chế độ replay all, chơi bài tiếp theo
+        if (replayMode() === 1) {
+            handleNext();
+        } 
+        // Nếu ở chế độ replay one, đã được xử lý bởi thuộc tính loop của audio
+        // Nếu không replay, dừng phát
+    };
 
     function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return "0:00";
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
-
-    const [currentTime, setCurrentTime] = createSignal(0);
-    const [duration, setDuration] = createSignal(0);
 
     return (
         <div class=" h-[72px] sticky bottom-0 left-0 right-0 bg-base-300 text-base-content p-2 z-2 grid grid-cols-10">
@@ -174,7 +251,10 @@ export default function Playbar() {
                         ></div>
                     </div>
 
-                    <button className="btn size-fit bg-transparent border-none hover:scale-105 hover:text-white hover:fill-white flex flex-col items-center fill-base-content">
+                    <button 
+                        className="btn size-fit bg-transparent border-none hover:scale-105 hover:text-white hover:fill-white flex flex-col items-center fill-base-content"
+                        onClick={handlePrevious}
+                    >
                         <SkipBack size={20} fill="" />
                         <div class="size-1 opacity-0"></div>
                     </button>
@@ -192,7 +272,10 @@ export default function Playbar() {
                         <div class="size-1 opacity-0"></div>
                     </div>
 
-                    <button className="btn bg-transparent hover:scale-105 hover:text-white hover:fill-white border-none flex flex-col items-center fill-base-content">
+                    <button 
+                        className="btn bg-transparent hover:scale-105 hover:text-white hover:fill-white border-none flex flex-col items-center fill-base-content"
+                        onClick={handleNext}
+                    >
                         <SkipForward size={20} fill="" />
                         <div class="size-1 opacity-0"></div>
                     </button>
@@ -230,7 +313,7 @@ export default function Playbar() {
                         <input
                             type="range"
                             min="0"
-                            max=""
+                            max="100"
                             value={progress()}
                             onInput={handleProgress}
                             className="level"
@@ -368,7 +451,13 @@ export default function Playbar() {
             </div>
 
             <audio
-                ref={(el) => (audioRef = el)}
+                ref={(el) => {
+                    audioRef = el;
+                    if (el) {
+                        el.volume = volume() / 100;
+                        el.loop = replayMode() === 2;
+                    }
+                }}
                 src={`${backendUrl}${auth.currentSong().song_url}`}
                 preload="auto"
                 onTimeUpdate={() => {
@@ -384,6 +473,9 @@ export default function Playbar() {
                         setDuration(audioRef.duration);
                     }
                 }}
+                onEnded={handleAudioEnded}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
             />
         </div>
     );

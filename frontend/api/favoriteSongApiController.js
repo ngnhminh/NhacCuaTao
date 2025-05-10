@@ -71,3 +71,25 @@ export const getAllFavoriteSongIds = async () => {
 export const unlikedSong = async (id) => {
   return await axios.delete(`${API_URL}/api/favoriteSongs/FavoriteSongDeleteView/${id}/`);
 };
+
+export const getFavListInform = async() =>{
+  const token = localStorage.getItem("userToken");
+   if (token) {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/favoriteSongs/FavoriteSongGetView/`,
+        {
+          params: {
+            action: "getFavListInform",
+          },
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi lấy bài hát yêu thích:", error);
+    }
+  }
+}

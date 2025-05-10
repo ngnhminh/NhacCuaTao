@@ -4,6 +4,7 @@ from AuthToken.models import AuthToken
 from Artists.models import Artist
 from Users.models import User
 from django.http import JsonResponse
+from bson import ObjectId
 
 # Create your views here.
 
@@ -51,6 +52,20 @@ class ArtistGetView(APIView):
                     for artist in listArtist
                 ]
                 return JsonResponse({"artists": artists_data}, status=200)
+            
+            if action == "getArtistInform":
+                artistId = request.GET.get('artistId')
+                artist = Artist.objects.get(id=ObjectId(artistId))
+                artists_data = {
+                        "id": str(artist.id),
+                        "name": artist.artist_name,
+                        "active_years": artist.active_years,
+                        "description": artist.description,
+                        "user": {
+                            "avatar_url": artist.user.avatar_url
+                        }
+                    }
+                return JsonResponse({"artist": artists_data}, status=200)
             return JsonResponse({"error": "WrongParams"}, status=400)  
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)

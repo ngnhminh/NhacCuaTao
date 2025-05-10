@@ -41,4 +41,27 @@ export const createPlaylist = async () => {
       }
     }
   };
-  
+
+  export const getPlaylistInform = async (playlistId) => {
+    console.log("idd" + playlistId)
+    const token = localStorage.getItem("userToken");
+    if (token) {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/playlists/PlaylistGetView/`,
+          {
+            params: {
+              action: "getPlaylistInform",
+              playlistId
+            },
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Lỗi lấy bài hát yêu thích:", error);
+      }
+    }
+  };

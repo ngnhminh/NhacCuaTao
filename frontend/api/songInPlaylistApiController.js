@@ -25,3 +25,27 @@ export const addSongInPlaylist = async (songId, playlistId) => {
     console.error("Lỗi thêm bài hát:", error.response?.data || error.message);
   }
 };
+
+export const getSongsInPlaylistIds = async (playlistId) => {
+  const token = localStorage.getItem("userToken");
+  if (!token) return;
+
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/songInPlaylist/SongInPlaylistGetView/`,
+      {
+        params: {
+          action: "getSongsInPlaylistIds",
+          playlistId,
+        },
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi thêm bài hát:", error.response?.data || error.message);
+  }
+};

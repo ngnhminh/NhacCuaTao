@@ -1,10 +1,10 @@
 import { login, logout,  getUserInform, uploadAvatar, updateArtistInform} from "../api/loginApiController"; 
 import {requestArtistApprove, requestSongApprove} from "../api/requestApiController"; 
-import {getAllArtist} from "../api/artistApiController"; 
-import {getAllSong} from "../api/songApiController"
-import {createPlaylist, getAllPlaylistIds} from "../api/playlistApiController"
-import {findSongInFavoriteSong, likedSong, getAllFavoriteSongIds, unlikedSong} from "../api/favoriteSongApiController"
-import {addSongInPlaylist} from "../api/songInPlaylistApiController"
+import {getAllArtist, getArtistInform} from "../api/artistApiController"; 
+import {getAllSong, getAllSongOfArtistById, increaseViewCount} from "../api/songApiController"
+import {createPlaylist, getAllPlaylistIds, getPlaylistInform} from "../api/playlistApiController"
+import {findSongInFavoriteSong, likedSong, getAllFavoriteSongIds, unlikedSong, getFavListInform} from "../api/favoriteSongApiController"
+import {addSongInPlaylist, getSongsInPlaylistIds} from "../api/songInPlaylistApiController"
 
 export const loginService = async (userInformation) => {
   // console.log(userInformation);
@@ -34,6 +34,16 @@ export const logoutService = async () => {
 export const getUserInformService = async () => {
   try{
     const data = await getUserInform();
+    return data;
+  }catch (error){
+    console.error("Get Info error:", error.message);
+    throw error;
+  }
+}
+
+export const getArtistInformService = async (id) => {
+  try{
+    const data = await getArtistInform(id);
     return data;
   }catch (error){
     console.error("Get Info error:", error.message);
@@ -168,6 +178,56 @@ export const addSongInPlaylistService = async (songId, playlistId) => {
     return data;
   }catch (error){
     console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getAllSongOfArtistByIdService = async(id) => {
+  try{
+    const data = await getAllSongOfArtistById(id);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const increaseViewCountService = async (id) => {
+  try{
+    const data = await increaseViewCount(id);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getSongsInPlaylistIdsService = async (playlistId) => {
+  try{
+    const data = await getSongsInPlaylistIds(playlistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getPlaylistInformService = async (playlistId) => {
+  try{
+    const data = await getPlaylistInform(playlistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getFavListInformService = async () => {
+  try{
+    const data = await getFavListInform();
+    return data;
+  }catch (error){
+    console.error("Get Info error:", error.message);
     throw error;
   }
 }

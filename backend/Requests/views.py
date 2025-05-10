@@ -14,6 +14,7 @@ from django.core.files.storage import default_storage
 import json
 from django.core.files.base import ContentFile
 from django.conf import settings
+from mutagen.mp3 import MP3
 
 # Create your views here.
 class RequestView(APIView):
@@ -60,7 +61,10 @@ class RequestView(APIView):
 
                         music_file = request.FILES.get('musicFile')
                         cover_file = request.FILES.get('cover')
-
+                        
+                        audio = MP3(music_file)
+                        duration = audio.info.length
+                        
                         if not cover_file:
                             return JsonResponse({"error": "No cover uploaded"}, status=400)
                         
@@ -91,7 +95,7 @@ class RequestView(APIView):
                             status=0,
                             release_date=releaseDate,
                             is_explicit=ageRestricted,
-                            duration=0,
+                            duration=duration,
                             picture_url=cover_url,
                             song_url=music_url,
                             artist=artist,
@@ -201,7 +205,7 @@ class SongApproveFormView(APIView):
                 new_song = Song.objects.create(
                     song_name=songRequest.title,
                     release_date=songRequest.release_date,
-                    duration=0,
+                    duration=songRequest.duration,
                     song_url=songRequest.song_url,
                     picture_url=songRequest.picture_url,
                     is_explicit=songRequest.is_explicit,
