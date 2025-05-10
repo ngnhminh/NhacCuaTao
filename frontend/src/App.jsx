@@ -10,6 +10,7 @@ import Artist from './pages/Artist';
 import { AuthProvider } from './layout/AuthContext';
 import AdminLogin from './pages/AdminLogin';
 import AdminPage from './pages/AdminPage';
+import Profile from './pages/Profile';
 
 const App = () => {
     return (
@@ -22,6 +23,7 @@ const App = () => {
                     <Route path="/artist/:id" component={Artist} />
                     <Route path="/playlist/:id" component={Playlist} />
                     <Route path="/favorite" component={FavoriteListPage} />
+                    <Route path="/profile" component={Profile} />
                 </Route>
 
                 {/* Login layout */}
