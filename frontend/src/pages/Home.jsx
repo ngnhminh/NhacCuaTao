@@ -146,7 +146,6 @@ const Home = () => {
                         </div>
                     }
                 >
-                    <Profile />
                 </Show>
 
                 <Show when={isLoggedIn()} fallback={<></>}>

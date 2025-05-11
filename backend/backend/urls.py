@@ -28,4 +28,6 @@ urlpatterns = [
     path('api/playlists/', include('Playlists.urls')),
     path('api/favoriteSongs/', include('FavoriteSongs.urls')),
     path('api/songInPlaylist/', include('SongInPlaylist.urls')),
+    path('api/songInAlbum/', include('SongInAlbum.urls')),
+    path('api/albums/', include('Albums.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

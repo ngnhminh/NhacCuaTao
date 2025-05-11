@@ -5,7 +5,8 @@ import {getAllSong, getAllSongOfArtistById, increaseViewCount} from "../api/song
 import {createPlaylist, getAllPlaylistIds, getPlaylistInform} from "../api/playlistApiController"
 import {findSongInFavoriteSong, likedSong, getAllFavoriteSongIds, unlikedSong, getFavListInform} from "../api/favoriteSongApiController"
 import {addSongInPlaylist, getSongsInPlaylistIds} from "../api/songInPlaylistApiController"
-
+import {getSongsInAlbumIds} from "../api/songInAlbumApiController"
+import {addNewAlbum, getAllArtistAlbum, getAlbumInform} from "../api/albumApiController"
 export const loginService = async (userInformation) => {
   // console.log(userInformation);
   try {
@@ -102,6 +103,7 @@ export const requestSongApproveService = async (formData) => {
     throw error;
   }
 }
+
 export const getAllSongOfArtistService = async () => {
   try{
     const data = await getAllSong();
@@ -212,6 +214,16 @@ export const getSongsInPlaylistIdsService = async (playlistId) => {
   }
 }
 
+export const getSongsInAlbumIdsService = async (albumId) => {
+  try{
+    const data = await getSongsInAlbumIds(albumId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
 export const getPlaylistInformService = async (playlistId) => {
   try{
     const data = await getPlaylistInform(playlistId);
@@ -228,6 +240,37 @@ export const getFavListInformService = async () => {
     return data;
   }catch (error){
     console.error("Get Info error:", error.message);
+    throw error;
+  }
+}
+
+export const addNewAlbumService = async (formData) => {
+  console.log(formData)
+  try{
+    const data = await addNewAlbum(formData);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getAllArtistAlbumService = async (id) => {
+  try{
+    const data = await getAllArtistAlbum(id);
+    return data;
+  }catch (error){
+    console.error("Get Info error:", error.message);
+    throw error;
+  }
+}
+
+export const getAlbumInformService = async (albumId) => {
+  try{
+    const data = await getAlbumInform(albumId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
     throw error;
   }
 }

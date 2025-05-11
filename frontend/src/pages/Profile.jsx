@@ -6,6 +6,9 @@ import {
     updateArtistInformService,
     requestSongApproveService,
     getAllArtistService,
+    getAllSongOfArtistByIdService,
+    addNewAlbumService,
+    getAllArtistAlbumService
 } from '../../services/authService';
 import { createGlobalStyles } from 'solid-styled-components';
 import DatePicker from '@rnwonder/solid-date-picker';
@@ -14,6 +17,7 @@ import Footer from '../layout/Footer';
 import FollowArtists from '../components/sections/FollowArtists';
 import SidePart from '../components/SidePart';
 import PanelContainer from '../components/PanelContainer';
+import { useNavigate } from "@solidjs/router";
 
 const GlobalStyles = createGlobalStyles`
   @keyframes fadeIn {
@@ -68,26 +72,26 @@ const Profile = () => {
             title: 'Nghệ sĩ',
         },
     ];
+    const navigate = useNavigate();
     const [uploading, setUploading] = createSignal(false);
     let fileInputRef;
     const [data, { refetch }] = createResource(getUserInformService);
 
-    // logic (Long)
-    const [fullName, setFullName] = createSignal('');
-
     const [showPopup, setShowPopup] = createSignal(false);
     const [showDetail, setShowDetail] = createSignal(false);
     const [showAddMusic, setShowAddMusic] = createSignal(false);
+    const [showAddAlbum, setShowAddAlbum] = createSignal(false);
     const [facebookLink, setFacebookLink] = createSignal('');
     const [editField, setEditField] = createSignal(null);
     const [previewImage, setPreviewImage] = createSignal(null);
     const [searchResults, setSearchResults] = createSignal([]);
+    const [allAlbum, setAllAlbum] = createSignal([]);
     const [tempData, setTempData] = createSignal({
         full_name: '',
         description: '',
         country: '',
     });
-
+    
     const [newSong, setNewSong] = createSignal({
         title: '',
         releaseDate: new Date(),
@@ -97,20 +101,40 @@ const Profile = () => {
         featuredArtists: [], //Nghệ sĩ cover cùng
     });
 
+    const [newAlbum, setNewAlbum] = createSignal({
+        album_name: '',
+        releaseDate: new Date(),
+        album_picture: null,
+        songs: [], 
+    });
+
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     // Khi data load xong thì cập nhật formData
     createEffect(() => {
-        if (data()) {
-            setFullName(data().user.full_name); // Long
-
+        const d = data();
+        if (d?.user && d?.artist) {
             setTempData({
                 full_name: data().user.full_name,
                 description: data().artist?.description || '',
                 country: data().artist?.country || '',
             });
         }
+        // console.log("thông tin", d)
+        if(d?.artist?.id){
+            reloadAllAlbum(d.artist.id)
+        }
     });
+
+    const reloadAllAlbum = async (artistId) => {
+        try{
+            const result = await getAllArtistAlbumService(artistId);
+            console.log("thông tin hàm allALbum " + result)
+            setAllAlbum(result.albumList);
+        }catch (err) {
+        console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+    }
 
     function handleChange(field, value) {
         setTempData((prev) => ({ ...prev, [field]: value }));
@@ -161,29 +185,22 @@ const Profile = () => {
     const handlePopupClose = () => {
         setShowPopup(false);
         setShowAddMusic(false);
+        setShowAddAlbum(false);
     };
 
     const handlePopupOpen = () => {
         setShowPopup(true);
     };
 
-    // const saveChanges = async () => {
-    //     await updateArtistInformService(tempData());
-    //     console.log('Saved:', tempData());
-    //     alert('Lưu thông tin thành công');
-    //     refetch();
-    //     setEditField(null);
-    // };
-
-    // Test logic (Long)
     const saveChanges = async () => {
-        await updateArtistInformService({ full_name: fullName() });
-        console.log('Saved:', fullName());
+        await updateArtistInformService(tempData());
+        console.log('Saved:', tempData());
         alert('Lưu thông tin thành công');
         refetch();
         setEditField(null);
     };
 
+    //Gửi thông tin tạo nhạc
     const handleAddMusicSubmit = async () => {
         const song = newSong();
         console.log(newSong().releaseDate);
@@ -216,27 +233,55 @@ const Profile = () => {
         handlePopupClose();
     };
 
+    //Gửi thông tin tạo album
+     const handleAddAlbumSubmit = async () => {
+        const album = newAlbum();
+        if (!(album.releaseDate instanceof Date)) {
+            alert('Vui lòng chọn ngày phát hành hợp lệ');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('album_name', album.album_name);
+        formData.append(
+            'releaseDate',
+            album.releaseDate.toISOString().split('T')[0]
+        );
+
+        formData.append('album_picture', album.album_picture);
+
+        formData.append(
+            'songs',
+            JSON.stringify(album.songs)
+        );
+        await addNewAlbumService(formData);
+        alert('Tạo album thành công');
+        handlePopupClose();
+    }
+
+    const handleOpenAlbum = (id) => {
+        navigate(`/album/${id}`)
+    }
+
     return (
         <>
             <GlobalStyles />
             <Show when={data()} fallback={<div>Loading...</div>}>
-                <div class="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300">
+                <div className="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-gradient-to-b from-[#121212] to-[#121212] text-white">
                     <SidePart />
-                    <div className="overflow-auto p-6">
+                    <div className="flex-1 overflow-auto rounded-lg bg-[#121212]">
                         <div
-                            class="rounded-xl shadow-xl hover:shadow-2xl transition cursor-pointer"
+                            className="h-[380px] bg-gradient-to-b from-[#1e1e1e] via-[#121212] to-black p-10 rounded-b-2xl shadow-inner"
                             onClick={() => setShowDetail(true)}
                         >
-                            <div class="flex items-center gap-6 pb-6">
-                                <div class="relative group">
+                            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-8 pt-12">
+                                {/* Avatar + Upload */}
+                                <div className="relative group cursor-pointer">
                                     <img
                                         src={
-                                            `${backendUrl}${
-                                                data().user.avatar_url
-                                            }` || '/default-avatar.jpg'
+                                            `${backendUrl}${data().user.avatar_url}` || '/default-avatar.jpg'
                                         }
                                         alt="Avatar"
-                                        class="w-[144px] h-[144px] rounded-full object-cover border-4 border-white shadow-md"
+                                        className="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px] rounded-full object-cover border-4 border-[#1e1e1e] shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:scale-105"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             fileInputRef.click();
@@ -250,539 +295,508 @@ const Profile = () => {
                                         onChange={handleImageChange}
                                     />
                                     <Show when={uploading()}>
-                                        <div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
-                                            <span class="text-sm">
-                                                Uploading...
-                                            </span>
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full backdrop-blur-md">
+                                            <span className="text-white text-sm animate-pulse">Đang tải lên...</span>
                                         </div>
                                     </Show>
                                 </div>
-                                <div className="flex flex-col gap-4">
-                                    <div className="text-sm">Hồ sơ</div>
-                                    <h1 class="text-5xl font-bold">
-                                        {data().user.full_name}
-                                    </h1>
-                                    <div className="text-base">
-                                        • 11 đang theo dõi
-                                    </div>
+
+                                {/* Thông tin user */}
+                                <div className="text-white flex flex-col items-center sm:items-start gap-2">
+                                    <span className="text-xs tracking-widest uppercase text-[#b3b3b3] font-semibold">Hồ sơ</span>
+                                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold leading-tight drop-shadow-xl text-white">{data().user.full_name}</h1>
+                                    <p className="text-sm sm:text-base text-[#b3b3b3] mt-2">
+                                        11 đang theo dõi •{' '}
+                                        {data()?.artist ? (
+                                            <span className="text-white font-medium">{data().artist.followers} người hâm mộ</span>
+                                        ) : (
+                                            '0 bài hát'
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
+
                         <Show when={showDetail()}>
-                            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-99">
-                                <div class="flex bg-[#282828] rounded-[8px] w-[524px] flex-col text-[#b3b3b3] relative max-w-[calc(100vw-32px)] max-h-[calc(100vw-32px)]">
-                                    <div class="flex justify-between items-center p-6">
-                                        <h3 class="text-xl font-bold text-white">
-                                            Chi Tiết Thông Tin
-                                        </h3>
+                            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+                                <div className="bg-[#181818] rounded-2xl w-[524px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-32px)] overflow-auto text-[#b3b3b3] shadow-2xl animate-scaleIn">
+                                    {/* Header */}
+                                    <div className="flex justify-between items-center p-6 border-b border-[#2a2a2a]">
+                                        <h3 className="text-2xl font-bold text-white">Chi Tiết Thông Tin</h3>
                                         <button
-                                            className="absolute bg-[#000000b3] rounded-[50%] h-8 w-8 flex justify-center items-center right-4 top-4 cursor-pointer hover:bg-[#121212] hover:text-white"
+                                            className="rounded-full h-8 w-8 flex justify-center items-center hover:bg-[#2a2a2a] transition-colors"
                                             onClick={() => setShowDetail(false)}
                                         >
-                                            <svg
-                                                role="img"
-                                                viewBox="0 0 16 16"
-                                                className="h-4 w-4 fill-current"
-                                            >
-                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z"></path>
+                                            <svg role="img" viewBox="0 0 16 16" className="h-4 w-4 fill-white">
+                                                <path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06Z" />
                                             </svg>
                                         </button>
                                     </div>
 
-                                    {/* Full name */}
-                                    <div class="flex items-center px-6 pb-6">
-                                        <Show
-                                            when={editField() === 'full_name'}
-                                            fallback={
-                                                <>
-                                                    <img
-                                                        className="w-[180px] h-[180px] rounded-[50%]"
-                                                        src="http://localhost:8000/media/avatars/681436998a3277bcca3d1895_Frame_2.jpg"
-                                                    />
-                                                    {/* <p>
-                                                    <span class="font-semibold">
-                                                        Tên:
-                                                    </span>{' '}
-                                                    {data()?.user.full_name}
-                                                </p>
-                                                <button
-                                                    onClick={() =>
-                                                        setEditField(
-                                                            'full_name'
-                                                        )
-                                                    }
-                                                    class="text-sm text-blue-600"
-                                                >
-                                                    ✏️
-                                                </button> */}
-                                                    <div className="relative">
-                                                        <label className="absolute text-[#b3b3b3] left-6 top-[-8px] text-xs font-bold">
-                                                            Tên
-                                                        </label>
-                                                        <input
-                                                            className="bg-[#ffffff1a] border border-transparent rounded-sm text-white text-sm h-10 px-3 ml-4 w-full focus:bg-[#333] focus:border-[#535353] outline-none"
-                                                            placeholder="Thêm tên hiển thị"
-                                                            value={fullName()}
-                                                            onInput={(e) =>
-                                                                setFullName(
-                                                                    e
-                                                                        .currentTarget
-                                                                        .value
-                                                                )
-                                                            }
-                                                        />
-                                                        <button
-                                                            onClick={
-                                                                saveChanges
-                                                            }
-                                                            className="font-bold text-[1rem] rounded-[999px] ml-[200px] bg-white text-black cursor-pointer px-8 py-2 mt-4 hover:scale-[1.04] hover:bg-[#f0f0f0]"
-                                                        >
-                                                            Lưu
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            }
-                                        >
-                                            <input
-                                                class="border rounded px-2 py-1 w-full"
-                                                value={tempData().full_name}
-                                                onInput={(e) =>
-                                                    handleChange(
-                                                        'full_name',
-                                                        e.target.value
-                                                    )
-                                                }
+                                    {/* Body */}
+                                    <div className="p-6 space-y-6">
+                                        {/* Avatar và Full Name */}
+                                        <div className="flex items-center gap-6">
+                                            <img
+                                                className="w-24 h-24 rounded-full object-cover border-2 border-[#333] shadow-md"
+                                                src={`${backendUrl}${data()?.user?.avatar_url}` || '/default-avatar.jpg'}
                                             />
-                                        </Show>
-                                    </div>
-
-                                    {/* Nghệ danh */}
-                                    {data()?.artist && (
-                                        <>
-                                            <div class="mb-2">
-                                                <p>
-                                                    <span class="font-semibold">
-                                                        Nghệ Danh:
-                                                    </span>{' '}
-                                                    {data().artist.artist_name}
-                                                </p>
-                                            </div>
-
-                                            {/* Description */}
-                                            <div class="flex justify-between items-center mb-2">
-                                                <Show
-                                                    when={
-                                                        editField() ===
-                                                        'description'
-                                                    }
-                                                    fallback={
-                                                        <>
-                                                            <p>
-                                                                <span class="font-semibold">
-                                                                    Mô tả:
-                                                                </span>{' '}
-                                                                {
-                                                                    data()
-                                                                        .artist
-                                                                        .description
-                                                                }
-                                                            </p>
-                                                            <button
-                                                                onClick={() =>
-                                                                    setEditField(
-                                                                        'description'
-                                                                    )
-                                                                }
-                                                                class="text-sm text-blue-600"
-                                                            >
-                                                                ✏️
-                                                            </button>
-                                                        </>
-                                                    }
-                                                >
+                                            <div className="flex-1 text-white">
+                                                <Show when={editField() === 'full_name'} fallback={
+                                                    <>
+                                                        <p><span className="font-semibold">Tên: </span>{data()?.user.full_name}</p>
+                                                        <button
+                                                            onClick={() => setEditField('full_name')}
+                                                            className="text-sm text-blue-500 hover:underline mt-1"
+                                                        >
+                                                            ✏️ Chỉnh sửa
+                                                        </button>
+                                                    </>
+                                                }>
                                                     <input
-                                                        class="border rounded px-2 py-1 w-full"
-                                                        value={
-                                                            tempData()
-                                                                .description
-                                                        }
-                                                        onInput={(e) =>
-                                                            handleChange(
-                                                                'description',
-                                                                e.target.value
-                                                            )
-                                                        }
+                                                        className="border border-[#444] bg-[#2a2a2a] text-white rounded px-3 py-2 w-full"
+                                                        value={tempData().full_name}
+                                                        onInput={(e) => handleChange('full_name', e.target.value)}
                                                     />
                                                 </Show>
                                             </div>
-
-                                            {/* Country */}
-                                            <div class="flex justify-between items-center mb-2">
-                                                <Show
-                                                    when={
-                                                        editField() ===
-                                                        'country'
-                                                    }
-                                                    fallback={
-                                                        <>
-                                                            <p>
-                                                                <span class="font-semibold">
-                                                                    Country:
-                                                                </span>{' '}
-                                                                {
-                                                                    data()
-                                                                        .artist
-                                                                        .country
-                                                                }
-                                                            </p>
-                                                            <button
-                                                                onClick={() =>
-                                                                    setEditField(
-                                                                        'country'
-                                                                    )
-                                                                }
-                                                                class="text-sm text-blue-600"
-                                                            >
-                                                                ✏️
-                                                            </button>
-                                                        </>
-                                                    }
-                                                >
-                                                    <input
-                                                        class="border rounded px-2 py-1 w-full"
-                                                        value={
-                                                            tempData().country
-                                                        }
-                                                        onInput={(e) =>
-                                                            handleChange(
-                                                                'country',
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                </Show>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <p>
-                                                    <span class="font-semibold">
-                                                        Số người theo dõi:
-                                                    </span>{' '}
-                                                    {data().artist.followers}
-                                                </p>
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* Save/Cancel buttons */}
-                                    <Show when={editField()}>
-                                        <div class="flex justify-end mt-4 gap-2">
-                                            <button
-                                                onClick={cancelEdit}
-                                                class="bg-gray-200 px-4 py-2 rounded"
-                                            >
-                                                Hủy
-                                            </button>
-                                            <button
-                                                onClick={saveChanges}
-                                                class="bg-blue-600 text-white px-4 py-2 rounded"
-                                            >
-                                                Lưu
-                                            </button>
                                         </div>
-                                    </Show>
-                                    <p className="font-bold text-xs text-white px-6 pb-6">
-                                        Bằng cách tiếp tục, bạn đồng ý cho phép
-                                        Spotify truy cập vào hình ảnh bạn đã
-                                        chọn để tải lên. Vui lòng đảm bảo bạn có
-                                        quyền tải lên hình ảnh.
-                                    </p>
+
+                                        {/* Thông tin nghệ sĩ nếu có */}
+                                        {data()?.artist && (
+                                            <>
+                                                <div className="text-sm">
+                                                    <span className="text-[#888]">Nghệ danh:</span>{' '}
+                                                    <span className="text-white font-medium">{data().artist.artist_name}</span>
+                                                </div>
+
+                                                {/* Description */}
+                                                <div>
+                                                    <Show when={editField() === 'description'} fallback={
+                                                        <div className="flex justify-between items-start">
+                                                            <p><span className="font-semibold">Mô tả:</span> {data().artist.description}</p>
+                                                            <button
+                                                                onClick={() => setEditField('description')}
+                                                                className="text-sm text-blue-500 hover:underline"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                        </div>
+                                                    }>
+                                                        <textarea
+                                                            rows="3"
+                                                            className="w-full bg-[#2a2a2a] text-white border border-[#444] rounded px-3 py-2"
+                                                            value={tempData().description}
+                                                            onInput={(e) => handleChange('description', e.target.value)}
+                                                        />
+                                                    </Show>
+                                                </div>
+
+                                                {/* Country */}
+                                                <div>
+                                                    <Show when={editField() === 'country'} fallback={
+                                                        <div className="flex justify-between items-center">
+                                                            <p><span className="font-semibold">Quốc gia:</span> {data().artist.country}</p>
+                                                            <button
+                                                                onClick={() => setEditField('country')}
+                                                                className="text-sm text-blue-500 hover:underline"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                        </div>
+                                                    }>
+                                                        <input
+                                                            className="w-full bg-[#2a2a2a] text-white border border-[#444] rounded px-3 py-2"
+                                                            value={tempData().country}
+                                                            onInput={(e) => handleChange('country', e.target.value)}
+                                                        />
+                                                    </Show>
+                                                </div>
+
+                                                <div>
+                                                    <p><span className="font-semibold">Người theo dõi:</span> {data().artist.followers}</p>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Action Buttons */}
+                                        <Show when={editField()}>
+                                            <div className="flex justify-end gap-4 mt-4">
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    className="bg-[#333] text-white px-4 py-2 rounded hover:bg-[#444]"
+                                                >
+                                                    Hủy
+                                                </button>
+                                                <button
+                                                    onClick={saveChanges}
+                                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                                >
+                                                    Lưu
+                                                </button>
+                                            </div>
+                                        </Show>
+
+                                        {/* Ghi chú cuối */}
+                                        <p className="text-xs text-center text-[#777] pt-4">
+                                            Bằng cách tiếp tục, bạn đồng ý cho phép Spotify truy cập vào hình ảnh bạn đã chọn để tải lên. Vui lòng đảm bảo bạn có quyền tải lên hình ảnh này.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </Show>
 
+
                         {/* Dòng chữ "Đăng kí nghệ sĩ" */}
 
-                        {!data()?.artist && (
+                        {!data()?.artist ? (
                             <button
                                 onClick={handlePopupOpen}
-                                class="mt-6 px-4 py-1 rounded-[9999px] border border-[#818181] text-base hover:scale-[1.02] cursor-pointer hover:border-[#12c04c] hover:text-[#12c04c]"
+                                className="rounded-full border border-[#1db954] bg-[#1db954] text-white px-4 py-2 text-sm font-medium hover:bg-[#1ed760] transition-colors"
                             >
                                 Đăng ký nghệ sĩ
                             </button>
-                        )}
-
-                        {data()?.artist && (
-                            <div class="mt-4 text-center">
+                        ) : (
+                            <>
                                 <button
                                     onClick={() => setShowAddMusic(true)}
-                                    class="text-sm text-blue-500 underline cursor-pointer"
+                                    className="rounded-full border border-[#1db954] bg-[#1db954] text-white px-4 py-2 text-sm font-medium hover:bg-[#1ed760] transition-colors"
                                 >
                                     Thêm bài hát mới
                                 </button>
-                            </div>
+                                <button
+                                    onClick={() => setShowAddAlbum(true)}
+                                    className="rounded-full border border-[#1db954] bg-[#1db954] text-white px-4 py-2 text-sm font-medium hover:bg-[#1ed760] transition-colors ml-2"
+                                >
+                                    Thêm Album mới
+                                </button>
+                            </>
                         )}
 
                         {showAddMusic() && (
-                            <div class="fixed inset-0 bg-gray-400 bg-opacity-10 z-40 flex items-center justify-center backdrop-blur-md animate-fadeIn">
-                                <div class="bg-white p-6 rounded-xl shadow-lg max-w-lg w-full max-h-[75vh] overflow-y-auto animate-scaleIn">
-                                    <div class="flex justify-between items-center mb-6">
-                                        <h3 class="text-2xl font-semibold text-gray-800">
-                                            Thêm bài hát mới
-                                        </h3>
-                                        <button
-                                            onClick={handlePopupClose}
-                                            class="text-gray-500 hover:text-red-500 text-lg font-bold transition"
-                                            aria-label="Đóng popup"
-                                        >
-                                            &times;
-                                        </button>
+                            <div class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-fadeIn">
+                                <div class="bg-[#121212] text-white p-8 rounded-3xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-3xl font-bold text-white">🎵 Thêm bài hát mới</h3>
+                                    <button
+                                    onClick={handlePopupClose}
+                                    class="text-gray-400 hover:text-red-500 text-2xl font-bold transition"
+                                    >
+                                    &times;
+                                    </button>
+                                </div>
+
+                                <div class="space-y-5">
+                                    <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-300">Tên bài hát</label>
+                                    <input
+                                        type="text"
+                                        class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                        placeholder="Nhập tên bài hát..."
+                                        onInput={(e) => setNewSong((s) => ({ ...s, title: e.target.value }))}
+                                    />
                                     </div>
 
-                                    <div class="mb-4">
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">
-                                            Tên bài hát
-                                        </label>
-                                        <input
-                                            type="text"
-                                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-gray-700"
-                                            placeholder="Nhập tên bài hát..."
-                                            onInput={(e) =>
-                                                setNewSong((s) => ({
-                                                    ...s,
-                                                    title: e.target.value,
-                                                }))
-                                            }
-                                        />
+                                    <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-300">Ngày phát hành</label>
+                                    <DatePicker
+                                        class="w-full"
+                                        inputClassName="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                        selectedDate={newSong().releaseDate}
+                                        onChange={({ type, selectedDate }) => {
+                                        if (type === 'single' && selectedDate) {
+                                            const { year, month, day } = selectedDate;
+                                            setNewSong((s) => ({
+                                            ...s,
+                                            releaseDate: new Date(year, month - 1, day),
+                                            }));
+                                        }
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        placeholder="Chọn ngày phát hành"
+                                    />
                                     </div>
 
-                                    <div class="mb-4">
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">
-                                            Ngày phát hành
-                                        </label>
-                                        <DatePicker
-                                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700"
-                                            inputClassName="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700"
-                                            selectedDate={newSong().releaseDate}
-                                            onChange={({
-                                                type,
-                                                selectedDate,
-                                            }) => {
-                                                if (
-                                                    type === 'single' &&
-                                                    selectedDate
-                                                ) {
-                                                    const { year, month, day } =
-                                                        selectedDate;
-                                                    const validDate = new Date(
-                                                        year,
-                                                        month - 1,
-                                                        day
-                                                    ); // month bắt đầu từ 0
-                                                    setNewSong((s) => ({
-                                                        ...s,
-                                                        releaseDate: validDate,
-                                                    }));
-                                                }
-                                            }}
-                                            dateFormat="dd/MM/yyyy"
-                                            placeholder="Chọn ngày phát hành"
-                                        />
-                                    </div>
-
+                                    <div>
                                     <input
                                         type="text"
                                         placeholder="Tìm nghệ sĩ cover cùng..."
-                                        class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-gray-700"
+                                        class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
                                         onInput={async (e) => {
-                                            const query =
-                                                e.target.value.toLowerCase();
-                                            if (query.length > 1) {
-                                                try {
-                                                    const data =
-                                                        await getAllArtistService();
-                                                    const filtered =
-                                                        data.artists.filter(
-                                                            (artist) =>
-                                                                artist.name
-                                                                    .toLowerCase()
-                                                                    .includes(
-                                                                        query
-                                                                    )
-                                                        );
-                                                    setSearchResults(filtered);
-                                                } catch (error) {
-                                                    console.error(
-                                                        'Lỗi tìm nghệ sĩ:',
-                                                        error
-                                                    );
-                                                }
-                                            } else {
-                                                setSearchResults([]);
+                                        const query = e.target.value.toLowerCase();
+                                        if (query.length > 1) {
+                                            try {
+                                            const data = await getAllArtistService();
+                                            const filtered = data.artists.filter((artist) =>
+                                                artist.name.toLowerCase().includes(query)
+                                            );
+                                            setSearchResults(filtered);
+                                            } catch (error) {
+                                            console.error('Lỗi tìm nghệ sĩ:', error);
                                             }
+                                        } else {
+                                            setSearchResults([]);
+                                        }
                                         }}
                                     />
-
-                                    <ul class="block mb-2 text-sm text-gray-800 bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto">
+                                    <ul class="border border-gray-600 mt-1 rounded-xl overflow-y-auto max-h-40 bg-[#181818] text-sm text-white">
                                         {searchResults().map((artist) => (
+                                        <li
+                                            key={artist.id}
+                                            class="cursor-pointer px-4 py-2 hover:bg-[#1db95433] border-b border-gray-700"
+                                            onClick={() => {
+                                            if (!newSong().featuredArtists.includes(artist.name)) {
+                                                setNewSong((s) => ({
+                                                ...s,
+                                                featuredArtists: [...s.featuredArtists, artist],
+                                                }));
+                                            }
+                                            }}
+                                        >
+                                            {artist.name}
+                                        </li>
+                                        ))}
+                                    </ul>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2">
+                                    {newSong().featuredArtists.map((artist) => (
+                                        <div
+                                        key={artist}
+                                        class="bg-[#1db95433] text-[#1db954] px-3 py-1 rounded-full flex items-center text-sm"
+                                        >
+                                        {artist.name}
+                                        <button
+                                            class="ml-2 text-red-400 hover:text-red-600"
+                                            onClick={() => {
+                                            setNewSong((s) => ({
+                                                ...s,
+                                                featuredArtists: s.featuredArtists.filter((n) => n !== artist),
+                                            }));
+                                            }}
+                                        >
+                                            &times;
+                                        </button>
+                                        </div>
+                                    ))}
+                                    </div>
+
+                                    <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-300">Tải lên file nhạc</label>
+                                    <input
+                                        type="file"
+                                        accept="audio/*"
+                                        class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                        onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) setNewSong((s) => ({ ...s, musicFile: file }));
+                                        }}
+                                    />
+                                    <Show when={newSong().musicFile}>
+                                        <p class="text-sm text-gray-400 mt-1">🎧 {newSong().musicFile.name}</p>
+                                    </Show>
+                                    </div>
+
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-300">Ảnh bìa</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                            onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                setNewSong((s) => ({ ...s, cover: file }));
+                                                setPreviewImage(URL.createObjectURL(file));
+                                            }
+                                            }}
+                                        />
+                                        <Show when={previewImage()}>
+                                            <img
+                                            src={previewImage()}
+                                            alt="Ảnh bìa"
+                                            class="mt-3 rounded-xl border border-gray-700 shadow max-w-full"
+                                            style={{ maxWidth: '200px' }}
+                                            />
+                                        </Show>
+                                    </div>
+
+                                    <div>
+                                    <label class="inline-flex items-center text-sm text-gray-300">
+                                        <input
+                                        type="checkbox"
+                                        class="mr-2 accent-[#1db954]"
+                                        onChange={(e) =>
+                                            setNewSong((s) => ({
+                                            ...s,
+                                            ageRestricted: e.target.checked,
+                                            }))
+                                        }
+                                        />
+                                        Giới hạn tuổi
+                                    </label>
+                                    </div>
+
+                                    <div class="text-right pt-4">
+                                    <button
+                                        onClick={handleAddMusicSubmit}
+                                        class="px-6 py-2.5 rounded-full bg-[#1db954] text-white font-semibold hover:bg-[#1ed760] transition"
+                                    >
+                                        Gửi bài hát
+                                    </button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {showAddAlbum() && (
+                            <div class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-fadeIn">
+                                <div class="bg-[#121212] text-white p-8 rounded-3xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-3xl font-bold text-white">🎵 Thêm Album mới</h3>
+                                    <button
+                                    onClick={handlePopupClose}
+                                    class="text-gray-400 hover:text-red-500 text-2xl font-bold transition"
+                                    >
+                                    &times;
+                                    </button>
+                                </div>
+
+                                <div class="space-y-5">
+                                    <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-300">Tên Album</label>
+                                    <input
+                                        type="text"
+                                        class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                        placeholder="Nhập tên bài hát..."
+                                        onInput={(e) => setNewAlbum((s) => ({ ...s, album_name: e.target.value }))}
+                                    />
+                                    </div>
+
+                                    <div>
+                                    <label class="block mb-2 text-sm font-semibold text-gray-300">Ngày phát hành</label>
+                                    <DatePicker
+                                        class="w-full"
+                                        inputClassName="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                        selectedDate={newAlbum().releaseDate}
+                                        onChange={({ type, selectedDate }) => {
+                                        if (type === 'single' && selectedDate) {
+                                            const { year, month, day } = selectedDate;
+                                            setNewAlbum((s) => ({
+                                            ...s,
+                                            releaseDate: new Date(year, month - 1, day),
+                                            }));
+                                        }
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        placeholder="Chọn ngày phát hành"
+                                    />
+                                    </div>
+
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Tìm bài hát..."
+                                            class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                            onInput=
+                                            {
+                                                async (e) => {
+                                                    const query = e.target.value.toLowerCase();
+                                                    if (query.length > 1) {
+                                                        try {
+                                                            const data_song = await getAllSongOfArtistByIdService(data().artist.id);
+                                                            const filtered = data_song.songs.filter((song) =>
+                                                                song.song_name.toLowerCase().includes(query)
+                                                            );
+                                                            console.log(filtered)
+                                                            setSearchResults(filtered);
+                                                        } catch (error) {
+                                                            console.error('Lỗi tìm bài hát:', error);
+                                                        }
+                                                    } else {
+                                                        setSearchResults([]);
+                                                    }
+                                                }
+                                            }
+                                        />
+                                        <ul class="border border-gray-600 mt-1 rounded-xl overflow-y-auto max-h-40 bg-[#181818] text-sm text-white">
+                                            {searchResults().map((song) => (
                                             <li
-                                                key={artist.id}
-                                                class="cursor-pointer px-3 py-2 hover:bg-blue-100 border-b border-gray-200"
+                                                key={song.id}
+                                                class="cursor-pointer px-4 py-2 hover:bg-[#1db95433] border-b border-gray-700"
                                                 onClick={() => {
-                                                    if (
-                                                        !newSong().featuredArtists.includes(
-                                                            artist.name
-                                                        )
-                                                    ) {
-                                                        setNewSong((s) => ({
-                                                            ...s,
-                                                            featuredArtists: [
-                                                                ...s.featuredArtists,
-                                                                artist,
-                                                            ],
+                                                    //Kiểm tra xem id bài hát đã được thêm vào trước đó chưa
+                                                    if (!newAlbum().songs.some((s) => s.id === song.id)) {
+                                                        setNewAlbum((prev) => ({
+                                                            ...prev,
+                                                            songs: [...prev.songs, song],
                                                         }));
                                                     }
                                                 }}
                                             >
-                                                {artist.name}
+                                                {song.song_name}
                                             </li>
-                                        ))}
-                                    </ul>
-
-                                    {/* Danh sách nghệ sĩ đã chọn, có thể xoá */}
-                                    <div class="flex flex-wrap gap-2 mt-2">
-                                        {newSong().featuredArtists.map(
-                                            (name) => (
-                                                <div
-                                                    key={name}
-                                                    class="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                                                >
-                                                    {name}
-                                                    <button
-                                                        class="ml-2 text-red-500 hover:text-red-700"
-                                                        onClick={() => {
-                                                            setNewSong((s) => ({
-                                                                ...s,
-                                                                featuredArtists:
-                                                                    s.featuredArtists.filter(
-                                                                        (n) =>
-                                                                            n !==
-                                                                            name
-                                                                    ),
-                                                            }));
-                                                        }}
-                                                    >
-                                                        &times;
-                                                    </button>
-                                                </div>
-                                            )
-                                        )}
+                                            ))}
+                                        </ul>
                                     </div>
 
-                                    {/* Tải lên file nhạc */}
-                                    <div class="mb-4">
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">
-                                            Tải lên file nhạc
-                                        </label>
+                                    <div class="flex flex-wrap gap-2">
+                                        {newAlbum().songs.map((song) => (
+                                            <div
+                                                key={song.id}
+                                                class="bg-[#1db95433] text-[#1db954] px-3 py-1 rounded-full flex items-center text-sm"
+                                            >
+                                            {song.song_name}
+                                            <button
+                                                class="ml-2 text-red-400 hover:text-red-600"
+                                                onClick={() => {
+                                                    setNewAlbum((s) => ({
+                                                        ...s,
+                                                        songs: s.songs.filter((n) => n.id !== song.id),
+                                                    }));
+                                                }}
+                                            >
+                                                &times;
+                                            </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block mb-2 text-sm font-semibold text-gray-300">Ảnh bìa</label>
                                         <input
                                             type="file"
-                                            accept="audio/*"
-                                            class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-auto"
+                                            accept="image/*"
+                                            class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
                                             onChange={(e) => {
-                                                const file = e.target.files[0];
-                                                if (file) {
-                                                    setNewSong((s) => ({
-                                                        ...s,
-                                                        musicFile: file,
-                                                    }));
-                                                }
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                setNewAlbum((s) => ({ ...s, album_picture: file }));
+                                                setPreviewImage(URL.createObjectURL(file));
+                                            }
                                             }}
                                         />
-                                        <Show when={newSong().musicFile}>
-                                            <p class="text-sm text-gray-600 mt-1">
-                                                🎵 File:{' '}
-                                                {newSong().musicFile.name}
-                                            </p>
+                                        <Show when={previewImage()}>
+                                            <img
+                                            src={previewImage()}
+                                            alt="Ảnh bìa"
+                                            class="mt-3 rounded-xl border border-gray-700 shadow max-w-full"
+                                            style={{ maxWidth: '200px' }}
+                                            />
                                         </Show>
                                     </div>
 
-                                    {/* Ảnh bìa */}
-                                    <div class="mb-4">
-                                        <label class="block mb-1 text-sm font-medium text-gray-700">
-                                            Ảnh bìa
-                                        </label>
-                                        <div class="relative group">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-auto"
-                                                onChange={(e) => {
-                                                    const file =
-                                                        e.target.files[0];
-                                                    if (file) {
-                                                        setNewSong((s) => ({
-                                                            ...s,
-                                                            cover: file,
-                                                        }));
-                                                        const imageUrl =
-                                                            URL.createObjectURL(
-                                                                file
-                                                            );
-                                                        setPreviewImage(
-                                                            imageUrl
-                                                        );
-                                                    }
-                                                }}
-                                            />
-                                            <Show when={newSong().cover}>
-                                                <p class="text-sm text-gray-600 mt-1">
-                                                    📸 File:{' '}
-                                                    {newSong().cover.name}
-                                                </p>
-                                            </Show>
-                                            {previewImage() && (
-                                                <div class="mt-3">
-                                                    <img
-                                                        src={previewImage()}
-                                                        alt="Ảnh bìa"
-                                                        class="rounded shadow-md border border-gray-300 max-w-full"
-                                                        style={{
-                                                            maxWidth: '200px',
-                                                            height: 'auto',
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {/* Giới hạn tuổi */}
-                                    <div class="mb-6">
-                                        <label class="flex items-center text-sm text-gray-700">
-                                            <input
-                                                type="checkbox"
-                                                class="mr-2 accent-blue-600"
-                                                onChange={(e) =>
-                                                    setNewSong((s) => ({
-                                                        ...s,
-                                                        ageRestricted:
-                                                            e.target.checked,
-                                                    }))
-                                                }
-                                            />
-                                            Giới hạn tuổi
-                                        </label>
-                                    </div>
-
-                                    {/* Nút Gửi */}
-                                    <div class="text-right">
+                                    <div class="text-right pt-4">
                                         <button
-                                            onClick={handleAddMusicSubmit}
-                                            class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                                            onClick={handleAddAlbumSubmit}
+                                            class="px-6 py-2.5 rounded-full bg-[#1db954] text-white font-semibold hover:bg-[#1ed760] transition"
                                         >
-                                            Gửi
+                                            Tạo album
                                         </button>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         )}
@@ -819,7 +833,31 @@ const Profile = () => {
                                 {/* Add more playlists here */}
                             </div>
                         </div>
-
+                        
+                        {/* Hiện danh sách album */}
+                        {data()?.artist && (
+                            <div class="mt-10">
+                                <h3 class="text-2xl font-semibold mb-4">
+                                    Các Album của bạn
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {allAlbum()?.map((album) => (
+                                        <div class="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition" onClick={() => handleOpenAlbum(album.id)}>
+                                            <div class="relative w-full aspect-[2/1] bg-gray-700 rounded mb-3 overflow-hidden">
+                                                <img
+                                                    src={`${backendUrl}${album.album_picture}`}
+                                                    alt={album.album_name}
+                                                    class="absolute inset-0 w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <h4 class="font-semibold text-white truncate">{album.album_name}</h4>
+                                            <p class="text-sm text-gray-400">Album • {album.song_number} songs</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
                         <div class="mt-10">
                             <div className="flex justify-between">
                                 <h3 class="text-2xl font-semibold mb-4">

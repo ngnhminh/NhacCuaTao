@@ -6,3 +6,7 @@ from mongoengine import Document, IntField, ReferenceField
 class SongInAlbum(Document):
     album = ReferenceField(Album, required=True)  # Liên kết với Album
     song = ReferenceField(Song, required=True)  # Liên kết với Song (tạo model Song tương tự)
+    meta = {
+        'collection': 'SongInAlbum'
+    }
+    

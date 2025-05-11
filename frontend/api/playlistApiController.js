@@ -43,7 +43,6 @@ export const createPlaylist = async () => {
   };
 
   export const getPlaylistInform = async (playlistId) => {
-    console.log("idd" + playlistId)
     const token = localStorage.getItem("userToken");
     if (token) {
       try {

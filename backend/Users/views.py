@@ -108,6 +108,7 @@ class OrtherActionView(APIView):
                                 return JsonResponse({
                                     "is_artist": True,
                                     "artist": {
+                                        "id": str(artist.id),
                                         "artist_name": artist.artist_name,
                                         "description": artist.description,
                                         "country": artist.country,

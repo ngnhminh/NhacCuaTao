@@ -53,7 +53,8 @@ const NavbarLogin = () => {
     };
 
     const openProfileHandle = () => {
-        auth.setIsOpenProfile(true);
+        // auth.setIsOpenProfile(true);
+        navigate('/profile');
     };
 
     // Hàm tìm kiếm sử dụng debounce

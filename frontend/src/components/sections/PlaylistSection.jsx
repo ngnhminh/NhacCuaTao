@@ -33,7 +33,7 @@ export default function MainSection() {
         }catch (err) {
           console.error("Lỗi khi load danh sách yêu thích:", err);
         }
-      }
+    }
     
     const reloadAllPlayList = async () => {
             try{
@@ -167,7 +167,7 @@ export default function MainSection() {
     
     const playSong = (song) => {
         auth.setCurrentSong(song);
-        };
+    };
 
     return (
         <Show when = {!loading()}

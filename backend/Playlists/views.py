@@ -45,7 +45,6 @@ class PlaylistGetView(APIView):
                     if action == "getAllPlaylistIds":
                         user = auth_token.user
                         playlistList = Playlist.objects.filter(user=user)
-                        songInPlaylist_data = SongInPlaylist.objects.filter()
                         
                         playlist_data = [
                             {
