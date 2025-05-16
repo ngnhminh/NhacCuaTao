@@ -55,7 +55,7 @@ export default function ApproveArtists() {
     try {
       const result = await deleteApproveSongFormsByIdService(id);
       if (result) {
-        alert("Xóa thành công");
+        // alert("Xóa thành công");
         await getData();
       }
     } catch (err) {

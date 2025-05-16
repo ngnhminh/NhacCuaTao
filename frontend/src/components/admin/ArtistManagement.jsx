@@ -1,18 +1,34 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
+import {getAllArtistService} from "../../../services/authService"
+import {lockUserService, unlockUserService} from '../../../services/admin/userManagement';
 
 export default function ArtistManagement() {
-  const [artists, setArtists] = createSignal([
-    { id: 1, name: "Nghệ sĩ 1", email: "artist1@example.com", status: "Hoạt động", listeners: 1200, songs: 10 },
-    { id: 2, name: "Nghệ sĩ 2", email: "artist2@example.com", status: "Hoạt động", listeners: 2500, songs: 15 },
-  ]);
+
   const [selectedArtist, setSelectedArtist] = createSignal(null);
+  const [artists, setArtists] = createSignal([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  const getAllArtistsData = async () => {
+    const result = await getAllArtistService();
+    setArtists(result.artists);
+  }
+
+  onMount(() => {
+      getAllArtistsData();
+  });
 
   const deleteArtist = (id) => {
     setArtists(artists().filter(artist => artist.id !== id));
   };
 
-  const lockArtist = (id) => {
-    setArtists(artists().map(artist => artist.id === id ? { ...artist, status: "Đã khóa" } : artist));
+  const lockUser = async (id) => {
+    const result = await lockUserService(id);
+    getAllArtistsData();
+  };
+
+  const unlockUser = async (id) => {
+    const result = await unlockUserService(id);
+    getAllArtistsData();
   };
 
   const showDetails = (id) => {
@@ -31,6 +47,7 @@ export default function ArtistManagement() {
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
+              <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Hình ảnh</th>
               <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Tên nghệ sĩ</th>
               <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Email</th>
               <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Trạng thái</th>
@@ -40,22 +57,36 @@ export default function ArtistManagement() {
           <tbody class="bg-white divide-y divide-gray-200">
             {artists().map(artist => (
               <tr key={artist.id} class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <img
+                    className="w-10 h-10 rounded-[50%] object-cover"
+                    src={`${backendUrl}${artist.user.avatar_url || "/default.png"}`}
+                    alt="Lỗi ảnh"
+                  />
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{artist.name}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{artist.email}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{artist.status}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{artist.user.email}</td>
+                <Show when={artist.user.status === 1} fallback={
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Bị khóa</td>
+                }>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Hoạt động</td>
+                </Show>
                 <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                  <button
-                    onClick={() => deleteArtist(artist.id)}
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                  >
-                    Xóa
-                  </button>
-                  <button
-                    onClick={() => lockArtist(artist.id)}
-                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                  >
-                    Khóa
-                  </button>
+                  <Show when={artist.user.status === 1} fallback={
+                    <button
+                      onClick={() => unlockUser(artist.user.id)}
+                      class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                    >
+                      Mở khóa
+                    </button>
+                  }>
+                    <button
+                      onClick={() => lockUser(artist.user.id)}
+                      class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                    >
+                      Khóa
+                    </button>
+                  </Show>
                   <button
                     onClick={() => showDetails(artist.id)}
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -75,9 +106,9 @@ export default function ArtistManagement() {
           <div class="bg-white p-6 rounded-xl shadow-lg max-w-md w-full z-50">
             <h3 class="text-2xl font-semibold text-gray-800">Thông tin chi tiết của {selectedArtist().name}</h3>
             <div class="mt-4">
-              <p class="text-sm text-gray-700"><strong>Email:</strong> {selectedArtist().email}</p>
-              <p class="text-sm text-gray-700"><strong>Số lượng người nghe:</strong> {selectedArtist().listeners}</p>
-              <p class="text-sm text-gray-700"><strong>Số lượng bài hát:</strong> {selectedArtist().songs}</p>
+              <p class="text-sm text-gray-700"><strong>Email:</strong> {selectedArtist().user.email}</p>
+              <p class="text-sm text-gray-700"><strong>Số lượng người nghe:</strong> {selectedArtist().followers}</p>
+              <p class="text-sm text-gray-700"><strong>Số lượng bài hát:</strong> {selectedArtist().songs_number}</p>
             </div>
             <div class="mt-4 flex space-x-4 justify-end">
               <button

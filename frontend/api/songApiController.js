@@ -57,4 +57,12 @@ export const downloadSong = async (songId) => {
         console.error("Error lấy danh sách duyệt nghệ sĩ:", error);
     }
 };
-  
+
+export const deleteSong = async (id) => {
+    try{
+      const response = await axios.delete(`${API_URL}/api/songs/SongDeleteView/${id}/`);
+      return response.data;
+    }catch (error) {
+      console.error("Lỗi hủy theo dõi nghệ sĩ:", error);
+    }
+};

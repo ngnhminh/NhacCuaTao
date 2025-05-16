@@ -4,6 +4,9 @@ from AuthToken.models import AuthToken
 from Songs.models import Song
 from Users.models import User
 from Artists.models import Artist
+from SongInAlbum.models import SongInAlbum
+from SongInPlaylist.models import SongInPlaylist
+from FavoriteSongs.models import FavoriteSongs
 from ArtistOfSong.models import ArtistOfSong
 from django.http import JsonResponse
 # Create your views here.
@@ -142,3 +145,17 @@ class SongUpdateView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SongDeleteView(APIView):
+    def delete(self, request, id):
+        try:
+            song = Song.objects.get(id=ObjectId(id))
+            ArtistOfSong.objects.filter(song=song).delete()
+            SongInAlbum.objects.filter(song=song).delete()
+            SongInPlaylist.objects.filter(song=song).delete()
+            FavoriteSongs.objects.filter(song=song).delete()
+            
+            song.delete()
+            return JsonResponse({"message": "Xóa thành công", "removed": True}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)

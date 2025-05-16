@@ -18,9 +18,6 @@ export const loginService = async (userInformation) => {
 
     if(data != null)
         console.log("ok")
-    //Lưu token người dùng
-    localStorage.setItem("userToken", data.token);
-    if(data?.artist_token) localStorage.setItem("artistToken", data.artist_token);
     return data;
   } catch (error) {
     console.error("Login Service Error:", error.message);

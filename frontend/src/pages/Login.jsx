@@ -29,8 +29,19 @@ const Login = () => {
             });
             // console.log("Login success:", data);
             if (data) {
+                if (data?.status === 0) {
+                    alert("Tài khoản của bạn đã bị khóa");
+                    return;
+                }
+                //Lưu token người dùng
+                localStorage.setItem("userToken", data.token);
+                if (data?.artist_token) {
+                    localStorage.setItem("artistToken", data.artist_token);
+                }
                 auth.setIsLoggedIn(true);
+
                 if(data?.artist_id) auth.setIsArtist(true);
+                
                 toast.success('Đăng nhập thành công!');
             } else {
                 toast.error('Đăng nhập thất bại');

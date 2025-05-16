@@ -2,14 +2,21 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.http import JsonResponse
 from .models import User
 from Artists.models import Artist
+from ArtistFollow.models import ArtistFollow
 from AuthToken.models import AuthToken
+from SongInPlaylist.models import SongInPlaylist
+from Playlists.models import Playlist
+from Requests.models import ArtistRequest
+from FavoriteSongs.models import FavoriteSongs
+from History.models import History
+from Notification.models import Notification
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import uuid
 from django.core.files.storage import default_storage
 from django.conf import settings
 from Artists.models import Artist
-
+from bson import ObjectId
 # Create your views here.
 
 class LoginView(APIView):
@@ -31,6 +38,9 @@ class LoginView(APIView):
                     "avatar_url": user.avatar_url
                 }
 
+                if user.status == 0:
+                    return JsonResponse({"status": 0})
+                
                 artist = Artist.objects.filter(user=user).first()
 
                 if artist:
@@ -67,7 +77,8 @@ class RegisterView(APIView):
                 email=email,
                 password=hashed_password,
                 full_name=full_name,
-                avatar_url = avatar_url
+                avatar_url = avatar_url,
+                status=1,
             )
 
             return JsonResponse({"created": True, "user_id": str(user.id)}, status=201)
@@ -137,7 +148,30 @@ class OrtherActionView(APIView):
                                     "artist": None,
                                     "user": user_data
                                 })
-                return Response({"error": "Token missing or invalid"}, status=400)    
+                return Response({"error": "Token missing or invalid"}, status=400) 
+            # For admin
+            if action == "getAllUser":
+                # Lấy toàn bộ user_id đã được dùng trong bảng Artist
+                artist_user_ids = set(str(artist.user.id) for artist in Artist.objects if artist.user)
+
+                # Lọc các user không có trong danh sách artist_user_ids
+                listUser = User.objects(id__nin=artist_user_ids)
+
+                users_data = [
+                    {
+                        "id": str(user.id),
+                        "full_name": user.full_name,
+                        "email": user.email,
+                        "avatar_url": user.avatar_url,
+                        "status": user.status
+                    }
+                    for user in listUser
+                ]
+                return JsonResponse({"users": users_data}, status=200)
+
+            return JsonResponse({"mess": "Param wrong"}, status=404)
+
+   
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
@@ -166,9 +200,41 @@ class OrtherActionView(APIView):
                             user.save()
 
                             return JsonResponse({"avatarUrl": user.avatar_url})
-
-                return JsonResponse({"error": "Unauthorized"}, status=401)
+                        return JsonResponse({"error": "Unauthorized"}, status=401)
+                    
+            action = request.data.get("action")      
+            if action == "unlockUser":
+                userId = request.data.get("id")
+                user = User.objects.get(id=ObjectId(userId))
+                user.update(set__status=1)
+                return JsonResponse({"status": True}, status=200)
+            
+            if action == "lockUser":
+                userId = request.data.get("id")
+                user = User.objects.get(id=ObjectId(userId))
+                user.update(set__status=0)
+                return JsonResponse({"status": True}, status=200)
+            return JsonResponse({"mess": "WrongParams"}, status=401)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
-
+class UserDeleteView(APIView):
+    def delete(self, request, id):
+        try:
+            user = User.objects.get(id=ObjectId(id))
+            ArtistFollow.objects.filter(user=user).delete()
+            ArtistRequest.objects.filter(user=user).delete()
+            AuthToken.objects.filter(user=user).delete()
+            FavoriteSongs.objects.filter(user=user).delete()
+            History.objects.filter(user=user).delete()
+            Notification.objects.filter(user=user).delete()
+            
+            # Lấy toàn playlist
+            playlists = Playlist.objects.filter(user=user)
+            SongInPlaylist.objects.filter(playlist__in=playlists).delete()
+            playlists.delete()
+            
+            user.delete()
+            return JsonResponse({"message": "Xóa thành công", "removed": True}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)

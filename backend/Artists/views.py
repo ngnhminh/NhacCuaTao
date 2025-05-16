@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from AuthToken.models import AuthToken
 from Artists.models import Artist
-from Users.models import User
+from Songs.models import Song
 from django.http import JsonResponse
 from bson import ObjectId
 
@@ -48,8 +48,12 @@ class ArtistGetView(APIView):
                         "country": artist.country,
                         "followers": artist.followers,
                         "user": {
-                            "avatar_url": artist.user.avatar_url
-                        }
+                            "id": str(artist.user.id),
+                            "status": artist.user.status,
+                            "avatar_url": artist.user.avatar_url,
+                            "email": artist.user.email,
+                        },
+                        "songs_number": Song.objects.filter(artist=artist).count(),
                     }
                     for artist in listArtist
                 ]
