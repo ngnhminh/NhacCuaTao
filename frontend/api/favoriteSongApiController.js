@@ -69,7 +69,22 @@ export const getAllFavoriteSongIds = async () => {
 };
 
 export const unlikedSong = async (id) => {
-  return await axios.delete(`${API_URL}/api/favoriteSongs/FavoriteSongDeleteView/${id}/`);
+  const token = localStorage.getItem("userToken");
+  if (token) {
+    try{
+      const response = axios.delete(`${API_URL}/api/favoriteSongs/FavoriteSongDeleteView/${id}/`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      console.log("Kiểm tra" + response.data);
+      return response.data;
+    }catch (error) {
+      console.error("Lỗi hủy theo dõi nghệ sĩ:", error);
+    }
+  }
 };
 
 export const getFavListInform = async() =>{

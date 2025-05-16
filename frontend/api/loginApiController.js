@@ -26,6 +26,7 @@ export const logout = async () => {
         }
       });
       localStorage.removeItem("userToken");
+      localStorage.removeItem("artistToken");
     } catch (error) {
       console.error("Error logging out:", error);
     }

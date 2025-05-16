@@ -15,7 +15,8 @@ const Playlist = () => {
     const [imgSize, setImgSize] = createSignal('auto');
     const [scalebtn, setScalebtn] = createSignal();
     const [scaletxt, setScaletxt] = createSignal();
-
+    const auth = useAuth();
+    
     onMount(() => {
         // Kiểm tra lại scrollContainer có tồn tại không
         if (scrollContainer) {
@@ -50,7 +51,11 @@ const Playlist = () => {
     });
 
     return (
-        <div className="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300">
+        <div classList={{
+            'h-[calc(100vh-64px-72px)]': auth.currentSong(),
+            'h-[calc(100vh-64px)]': !auth.currentSong(),
+            'flex gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300': true
+        }}>
             <SidePart />
 
             <Show

@@ -3,49 +3,116 @@ import {
     createResource,
     Show,
     onMount,
-    onCleanup,
+    createEffect, createMemo, onCleanup
 } from 'solid-js';
 import { Logo, Home } from '../../public/Icon.jsx';
-import { logoutService, getUserInformService } from '/./services/authService';
+import { logoutService, getUserInformService, getAllNotificationService } from '../../services/authService';
 import {
     getAllArtistService,
-    getAllSongOfArtistService,
+    getAllSongOfArtistService, notificationReadedService
 } from '../../services/authService';
 import { useNavigate } from '@solidjs/router';
 import { useAuth } from '../layout/AuthContext';
 import { initFlowbite } from 'flowbite';
+import  useSocketNotification  from '../hooks/useSocketNotification';
+import NotificationCard from '../components/NotificationCard';
+import {transferNotification, transferNotificationForArtist} from "../stores/notificationStore";
 
 const NavbarLogin = () => {
+    let dropdownRef;
+    let buttonRef;
     const [dropdownVisible, setDropdownVisible] = createSignal(false);
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const auth = useAuth();
     const navigate = useNavigate();
-
+    const [notifications, setNotifications] = createSignal([]);
+    const [isOpen, setIsOpen] = createSignal(false);
+    const { closeSocket } = useSocketNotification();
     // Lấy thông tin người dùng
     const [data] = createResource(getUserInformService);
 
     const handleFocus = () => setDropdownVisible(true);
     const handleBlur = () => setDropdownVisible(false);
 
+    const unreadCount = createMemo(() =>
+        notifications().filter(n => n.status === 0).length
+    );
+
     onMount(() => {
-        // Khởi tạo tất cả các components của Flowbite
         initFlowbite();
+        reloadNotification();
     });
 
-    function MyComponent() {
-        return <Link href="/">Đi tới trang mới</Link>;
-    }
+    //Khởi tạo sự kiện khi bấm ra ngoài đói với dropdown thông báo
+   
+    onMount(() => {
+        const handleClickOutside = (e) => {
+            if (
+            dropdownRef &&
+            !dropdownRef.contains(e.target) &&
+            buttonRef &&
+            !buttonRef.contains(e.target)
+            ) {
+            setIsOpen(false);
+            notificationReadedHandle();
+            }
+        };
+
+        window.addEventListener('click', handleClickOutside);
+        onCleanup(() => {
+            window.removeEventListener('click', handleClickOutside);
+        });
+    });
 
     const logoutHandle = async () => {
         try {
+            closeSocket();
             await logoutService();
             auth.setIsLoggedIn(false);
             auth.setIsOpenProfile(false);
-            MyComponent();
+            auth.setIsArtist(false);
+            navigate('/');
         } catch (err) {
             console.log(err);
         }
     };
+
+    createEffect(() => {
+        const newNotification = auth.isArtist()
+            ? transferNotificationForArtist()
+            : transferNotification();
+        if (newNotification) {
+            setNotifications(prev => [newNotification.message, ...prev]);
+            // notifications().forEach((artist) => {
+            //     console.log(artist.message);
+            // });
+        }
+    })
+
+    const reloadNotification = async () => {
+        try{
+            const result = auth.isArtist() 
+                ? await getAllNotificationService("artist")
+                : await getAllNotificationService("user")
+            setNotifications(result.notificationList);
+            console.log("Kiểm tra" + result.notificationList)
+        }catch (err) {
+            console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+    }
+
+    const notificationReadedHandle = async () => {
+        try{
+            const result = auth.isArtist() 
+                ? await notificationReadedService("artist")
+                : await notificationReadedService("user")
+            if(result.isDone){
+                reloadNotification();
+            } 
+        }catch (err) {
+            console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+    }
 
     const backToHomeHandle = () => {
         auth.setIsOpenProfile(false);
@@ -83,6 +150,7 @@ const NavbarLogin = () => {
                     console.error('Lỗi tìm nghệ sĩ:', error);
                 }
             } else {
+                auth.setIsOpenSearchPage(false)
                 auth.setResults([]);
             }
         }, 300);
@@ -142,7 +210,7 @@ const NavbarLogin = () => {
                                     onInput={handleSearch}
                                 />
 
-                                {dropdownVisible() && (
+                                {/* {dropdownVisible() && (
                                     <div className="absolute left-0 right-0 mt-1 bg-base-100 shadow-lg rounded-md z-50 p-2 text-sm dark:bg-base-200">
                                         <p className="py-1 px-3 text-white font-bold rounded">
                                             Các tìm kiếm gần đây
@@ -208,7 +276,7 @@ const NavbarLogin = () => {
                                             </li>
                                         </ul>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </form>
                     </div>
@@ -238,48 +306,56 @@ const NavbarLogin = () => {
                         </button>
 
                         {/* Notification button with Flowbite dropdown */}
-                        <button
-                            type="button"
-                            data-dropdown-toggle="notification-dropdown"
-                            className="btn btn-circle btn-ghost dark:hover:bg-base-100 mr-1 text-base-content hover:text-gray-900 hover:bg-gray-100 dark:text-base-content dark:hover:text-white"
-                        >
-                            <span className="sr-only">View notifications</span>
-                            <svg
-                                className="w-5 h-5"
-                                aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor"
-                                viewBox="0 0 14 20"
-                            >
-                                <path d="M12.133 10.632v-1.8A5.406 5.406 0 0 0 7.979 3.57.946.946 0 0 0 8 3.464V1.1a1 1 0 0 0-2 0v2.364a.946.946 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C1.867 13.018 0 13.614 0 14.807 0 15.4 0 16 .538 16h12.924C14 16 14 15.4 14 14.807c0-1.193-1.867-1.789-1.867-4.175ZM3.823 17a3.453 3.453 0 0 0 6.354 0H3.823Z" />
-                            </svg>
-                        </button>
+                        <div className="relative">
+                            <div className="relative">
+                                <button
+                                ref={(el) => (buttonRef = el)}
+                                type="button"
+                                onClick={() => setIsOpen((prev) => !prev)}
+                                className="btn btn-circle btn-ghost dark:hover:bg-base-100 mr-1 text-base-content hover:text-gray-900 hover:bg-gray-100 dark:text-base-content dark:hover:text-white"
+                                >
+                                <span className="sr-only">View notifications</span>
+                                <svg
+                                    className="w-5 h-5"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    viewBox="0 0 14 20"
+                                >
+                                    <path d="M12.133 10.632v-1.8A5.406 5.406 0 0 0 7.979 3.57.946.946 0 0 0 8 3.464V1.1a1 1 0 0 0-2 0v2.364a.946.946 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C1.867 13.018 0 13.614 0 14.807 0 15.4 0 16 .538 16h12.924C14 16 14 15.4 14 14.807c0-1.193-1.867-1.789-1.867-4.175ZM3.823 17a3.453 3.453 0 0 0 6.354 0H3.823Z" />
+                                </svg>
 
-                        <div
-                            id="notification-dropdown"
-                            className="hidden z-50 w-64 bg-white rounded-lg shadow dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700"
-                        >
-                            <div className="p-3 text-sm text-gray-900 dark:text-white font-medium">
-                                Thông báo
+                                {/* Badge đỏ */}
+                                <Show when={unreadCount() > 0}>
+                                    <span className="absolute top-0 right-0 rounded-full bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center translate-x-1/2 -translate-y-1/2">
+                                    {unreadCount()}
+                                    </span>
+                                </Show>
+                                </button>
                             </div>
-                            <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+
+                            <Show when={isOpen()}>
+                                <div
+                                ref={(el) => (dropdownRef = el)}
+                                className="absolute right-0 mt-2 z-50 w-64 max-h-100 overflow-y-auto bg-white rounded-lg shadow dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700"
+                                >
+                                <div className="p-3 text-sm text-gray-900 dark:text-white font-medium">
+                                    Thông báo
+                                </div>
+                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
+                                    <For
+                                    each={notifications()}
+                                    fallback={
+                                        <div className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                        Không có thông báo nào.
+                                        </div>
+                                    }
                                     >
-                                        Bạn có bài hát cần duyệt
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                    >
-                                        2 người dùng vừa đăng ký nghệ sĩ
-                                    </a>
-                                </li>
-                            </ul>
+                                    {(notification) => <NotificationCard {...notification} />}
+                                    </For>
+                                </ul>
+                                </div>
+                            </Show>
                         </div>
 
                         <button

@@ -1,11 +1,16 @@
 import { createSignal, onMount, onCleanup } from 'solid-js'
 import { ChevronLeft, ChevronRight } from 'lucide-solid'
+import { useAuth } from "../../layout/AuthContext";
+import {setShouldReloadHistory} from "../../stores/homeStore";
+import { addToHistoryService } from "../../../services/authService";
 
 const Carousel = (props) => {
     const itemWidth = props.itemWidth || 168 + 20 // Độ rộng item + khoảng cách giữa các item
     const [currentPage, setCurrentPage] = createSignal(0)
     const [itemsPerPage, setItemsPerPage] = createSignal(4)
     let containerRef
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const auth = useAuth();
 
     // Tính số item hiển thị dựa vào chiều rộng container
     const updateItemsPerPage = () => {
@@ -35,6 +40,16 @@ const Carousel = (props) => {
     const next = () => setCurrentPage((p) => Math.min(p + 1, maxPage()))
 
     const translateX = () => `-${currentPage() * itemWidth * itemsPerPage()}px`
+
+    const addToHistory = async(song) => {
+        await addToHistoryService(song);
+    }
+
+    const playSong = (song) => {
+        auth.setCurrentSong(song);
+        addToHistory(song);
+        setShouldReloadHistory(true);
+    };
 
     return (
         <div class="relative pl-1" ref={containerRef}>
@@ -68,11 +83,12 @@ const Carousel = (props) => {
                         <div
                             key={item.id}
                             class="card rounded-md hover:bg-base-100 transition-all duration-300 group cursor-pointer p-3 box-content w-[168px] flex-shrink-0 "
+                            onClick={() => playSong(item)}
                         >
                             <figure className="relative  mb-3">
                                 <img
-                                    src={item.image}
-                                    alt={item.title || ''}
+                                    src={`${backendUrl}${item.picture_url}`}
+                                    alt={item.song_name || ''}
                                     class="w-full"
                                 />
                                 <div
@@ -93,30 +109,24 @@ const Carousel = (props) => {
                             </figure>
 
                             <div>
-                                <p class="text-sm line-clamp-2 text-gray-300">
-                                    {Array.isArray(item.artist)
-                                        ? item.artist.map((artist, index) => (
-                                              <>
-                                                  <a
-                                                      href={`/artist/${encodeURIComponent(
-                                                          artist.name
-                                                      )}`}
-                                                      class="hover:underline"
-                                                  >
-                                                      {artist.name}
-                                                  </a>
-                                                  {index <
-                                                      item.artist.length -
-                                                          2 && <span>, </span>}
-                                                  {index ===
-                                                      item.artist.length -
-                                                          2 && (
-                                                      <span> và </span>
-                                                  )}
-                                              </>
-                                          ))
-                                        : item.artist || item.title}
-                                </p>
+                                <h3 class="text-white font-bold truncate">{item.song_name}</h3>
+                                <h3 class="text-sm text-gray-300 line-clamp-1 break-words">
+                                    {item.artist.artist_name}
+                                    {Array.isArray(item.artists)
+                                    ? item.artists.map((artist, index) => (
+                                        <>
+                                            <a
+                                            href={`/artist/${encodeURIComponent(artist.name)}`}
+                                            class="hover:underline"
+                                            >
+                                            , {artist.artist_name}
+                                            </a>
+                                            {index < item.artists.length - 2 && <span>, </span>}
+                                            {index === item.artists.length - 2 && <span> và </span>}
+                                        </>
+                                        ))
+                                    : item.artist?.artist_name}
+                                </h3>
                             </div>
                         </div>
                     ))}

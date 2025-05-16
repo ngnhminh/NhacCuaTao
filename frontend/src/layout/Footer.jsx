@@ -5,7 +5,7 @@ const Footer = () => {
                 <div className="md:flex md:justify-between">
                     <div className="grid grid-cols-2 gap-8 sm:gap-4 sm:grid-cols-4">
                         <div>
-                            <h2 className="mb-3 text-sm font-semibold text-gray-900 uppercase dark:text-white">
+                            <h2 className="mb-3 text-sm font-semibold text-white uppercase dark:text-white">
                                 Công ty
                             </h2>
                             <ul className="flex flex-col gap-3">
@@ -36,7 +36,7 @@ const Footer = () => {
                             </ul>
                         </div>
                         <div>
-                            <h2 className="mb-3 text-sm font-semibold text-gray-900 uppercase dark:text-white">
+                            <h2 className="mb-3 text-sm font-semibold text-white uppercase dark:text-white">
                                 Cộng đồng
                             </h2>
                             <ul className="flex flex-col gap-3">
@@ -83,7 +83,7 @@ const Footer = () => {
                             </ul>
                         </div>
                         <div>
-                            <h2 className="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">
+                            <h2 className="mb-6 text-sm font-semibold text-white uppercase dark:text-white">
                                 Liên kết hữu ích
                             </h2>
                             <ul className="flex flex-col gap-3 pr-6">
@@ -106,7 +106,7 @@ const Footer = () => {
                             </ul>
                         </div>
                         <div>
-                            <h2 className="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">
+                            <h2 className="mb-6 text-sm font-semibold text-white uppercase dark:text-white">
                                 Các gói của Spotify
                             </h2>
                             <ul className="flex flex-col gap-3">

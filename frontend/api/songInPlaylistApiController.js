@@ -49,3 +49,8 @@ export const getSongsInPlaylistIds = async (playlistId) => {
     console.error("Lỗi thêm bài hát:", error.response?.data || error.message);
   }
 };
+
+export const removeSongInPlaylist = async (songId, playlistId) => {
+  const response = await axios.delete(`${API_URL}/api/songInPlaylist/SongInPlaylistDeleteView/${songId}/${playlistId}/`);
+  return response.data;
+};

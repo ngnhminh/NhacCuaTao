@@ -8,6 +8,9 @@ from Artists.models import Artist
 from Playlists.models import Playlist
 from AuthToken.models import AuthToken
 from bson import ObjectId
+from mongoengine.errors import DoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
+from bson.errors import InvalidId
 
 class SongInPlaylistPostView(APIView):
     def post(self, request):
@@ -124,3 +127,16 @@ class SongInPlaylistGetView(APIView):
                 }, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
+class SongInPlaylistDeleteView(APIView):
+    def delete(self, request, songId, playlistId):
+        try:
+            song = Song.objects.get(id=ObjectId(songId))
+            playlist = Playlist.objects.get(id=ObjectId(playlistId))
+            remove_song = SongInPlaylist.objects.get(song=song, playlist=playlist)
+            if not remove_song:
+                return JsonResponse({"error": "Bài hát không nằm trong danh sách yêu thích"}, status=404)
+            remove_song.delete()
+            return JsonResponse({"message": "Xóa thành công", "removed": True}, status=200)
+        except (ObjectDoesNotExist, InvalidId):
+            return JsonResponse({"error": "Không tìm thấy hoặc ID không hợp lệ"}, status=404)

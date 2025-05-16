@@ -30,4 +30,7 @@ urlpatterns = [
     path('api/songInPlaylist/', include('SongInPlaylist.urls')),
     path('api/songInAlbum/', include('SongInAlbum.urls')),
     path('api/albums/', include('Albums.urls')),
+    path('api/artistFollow/', include('ArtistFollow.urls')),
+    path('api/notifications/', include('Notification.urls')),
+    path('api/history/', include('History.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -3,8 +3,9 @@ import { createResource, Show, createSignal, createEffect, createMemo, onCleanup
 import {getPlaylistInformService, 
         getAllFavoriteSongIdsService, 
         getAllPlaylistIdsService,
-        getFavListInformService} from "../../../services/authService";
+        getFavListInformService, addToHistoryService} from "../../../services/authService";
 import FavouriteButton from '../../components/FavouriteButton';
+import {setShouldReloadHistory} from "../../stores/homeStore";
 
 export default function MainSection() {
     const [loading, setLoading] = createSignal(true);
@@ -157,9 +158,22 @@ export default function MainSection() {
             }
         }
     
+    const addToHistory = async(song) => {
+        await addToHistoryService(song);
+    }
+
     const playSong = (song) => {
         auth.setCurrentSong(song);
-        };
+        addToHistory(song);
+        setShouldReloadHistory(true);
+    };
+
+    const playAllAlbum = () => {
+        const playlist = songs();
+        auth.setCurrentPlaylist(playlist);
+        auth.startPlaylist(playlist, 0);
+        // setIsPlaying(true); // nếu muốn phát ngay
+    };
 
     return (
         <Show when = {!loading()}
@@ -192,11 +206,11 @@ export default function MainSection() {
                                 <div className="w-6 h-6">
                                     <img
                                         className="rounded-[50%]"
-                                        src={`${backendUrl}${favlistDetail().avatar_url || "/default.png"}`}
+                                        src={`${backendUrl}${favlistDetail()?.avatar_url || "/default.png"}`}
                                     />
                                 </div>
                                 <span className="text-sm font-bold cursor-pointer hover:underline">
-                                    <a className="text-white">{favlistDetail().full_name}</a>
+                                    <a className="text-white">{favlistDetail()?.full_name}</a>
                                 </span>
                                 </div>
                                 <span className="text-[#ffbdb9] text-sm font-normal mx-1 whitespace-pre">
@@ -219,7 +233,7 @@ export default function MainSection() {
                     <div className="flex items-start p-6">
                         <div className="flex flex-row items-center">
                             <div className="shrink mr-4">
-                                <button className="self-center rounded-[9999px] cursor-pointer inline-block text-center align-middle will-change-transform hover:scale-[1.04]">
+                                <button className="self-center rounded-[9999px] cursor-pointer inline-block text-center align-middle will-change-transform hover:scale-[1.04]" onClick={()=>{playAllAlbum()}}>
                                     <span className="h-14 w-14 items-center bg-[#1ed760] rounded-[9999px] text-black flex justify-center hover:bg-[#3be477]">
                                         <span aria-hidden="true">
                                             <svg

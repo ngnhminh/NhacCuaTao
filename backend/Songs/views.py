@@ -10,6 +10,10 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from bson import ObjectId
+import os
+from django.http import FileResponse, Http404
+from django.conf import settings
+
 class SongGetView(APIView):
     def get(self, request):
         try:
@@ -100,6 +104,16 @@ class SongGetView(APIView):
                     for song in list_song
                 ]
                 return Response({"songs": songs_data}, status=status.HTTP_200_OK)
+            
+            if action == "downloadSong":
+                songId = request.GET.get('songId')
+                song = Song.objects.get(id=ObjectId(songId))
+                newPath = song.song_url.replace('/media/', '')
+                filepath = os.path.normpath(os.path.join(settings.MEDIA_ROOT, newPath))
+                print(filepath)
+                file_name = os.path.basename(filepath)
+                response = FileResponse(open(filepath, 'rb'), as_attachment=True, filename=file_name)
+                return response
             
             return Response({"error": "WrongParams"}, status=status.HTTP_400_BAD_REQUEST)
         

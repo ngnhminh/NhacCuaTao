@@ -1,6 +1,9 @@
 import { createSignal, Show, createMemo } from "solid-js";
 import { Check, CirclePlus, Search } from "lucide-solid";
-import {likedSongService, unlikedSongService, addSongInPlaylistService} from "../../services/authService";
+import {likedSongService, 
+        unlikedSongService, 
+        addSongInPlaylistService,
+        removeSongInPlaylistService} from "../../services/authService";
 
 export default function FavouriteButton(props) {
   const [isModalOpen, setIsModalOpen] = createSignal(false); // Modal mở chưa
@@ -39,16 +42,31 @@ export default function FavouriteButton(props) {
         alert("Đã thêm vào Playlist của bạn");
         props.reloadPlaylistList?.();
       }
-    } else {
-      setIsModalOpen(true);
     }
   };
 
+  const handleRemoveFromPlaylist = async (playlistId) => {
+    try{
+      const result = await removeSongInPlaylistService(props.songId, playlistId);
+      console.log(result)
+        if (result.removed) {
+          alert("Đã xóa khỏi playlist");
+          props.reloadPlaylistList?.();
+      }
+    }catch(error){
+      console.error("Lỗi", error)
+    }
+  }
+
   const confirmUnfavourite = async () => {
-    const result = await unlikedSongService(props.songId);
-    alert("Đã xóa khỏi danh sách yêu thích");
-    props.reloadFavoriteList?.();
-    setIsModalOpen(false);
+    try{
+      const result = await unlikedSongService(props.songId);
+      alert("Đã xóa khỏi danh sách yêu thích");
+      props.reloadFavoriteList?.();
+      setIsModalOpen(false);
+    }catch(error){
+      console.error("Lỗi", error);
+    }
   };
 
   const handleCheckClick = () => {
@@ -171,7 +189,7 @@ export default function FavouriteButton(props) {
                     }
                   >
                     <button
-                      onClick={() => setIsModalOpen(false)}
+                      onClick={() => handleRemoveFromPlaylist(playlist.id, playlist)}
                       class="btn btn-circle size-fit p-[1px] bg-primary border-none text-base-300 flex flex-col items-center fill-base-content"
                     >
                       <Check size={16} stroke-width={3} />

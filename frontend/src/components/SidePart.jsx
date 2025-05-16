@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount, For, Show } from 'solid-js';
+import { createSignal, onCleanup, onMount, For, Show, createEffect } from 'solid-js';
 import SidebarResizer from './SidebarResizer';
 import { Menu } from '../../public/Icon';
 import { Plus, Search, X } from 'lucide-solid';
@@ -6,78 +6,80 @@ import { highlightMatch } from './lib/utils';
 import SidebarToggleButton from './SidebarToggleButton';
 import { isMinimalView, setIsMinimalView } from '../signal/sidebarStore.js';
 import { initFlowbite } from 'flowbite';
-import {createPlaylistService, getAllPlaylistIdsService} from "../../services/authService";
+import {createPlaylistService, getAllPlaylistIdsService, getAllfollowedArtistIdsService} from "../../services/authService";
 import { useNavigate } from "@solidjs/router";
+import { shouldReloadPlaylists, setShouldReloadPlaylists } from '../stores/playlistStore';
+import { shouldReloadFollowedArtists, setshouldReloadFollowedArtists } from '../stores/artistStore';
 
 // Dữ liệu mẫu cho nghệ sĩ
-const artists = [
-    {
-        name: 'Đạt G',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101febc4b709c643e32f7bcc5a8d',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Mr.Siro',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101f4371fb198b011bb666a3bfde',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Đen',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Sol7',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101fcc911aa2866d62f7bd5e5894',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Ngơ',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101f6994e627c5b26909bc8ba813',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Binz',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101fc1e37930853ff1686dcdd567',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'W/N',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab6761610000101f316c0f0bc6cf3a29c203ab1e',
-        date: '16 thg 6, 2024',
-    },
-    {
-        name: 'Guilty Gear Strive',
-        type: 'Nghệ sĩ',
-        img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
-        date: '16 thg 6, 2024',
-    },
-];
+// const artists = [
+//     {
+//         name: 'Đạt G',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101febc4b709c643e32f7bcc5a8d',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Mr.Siro',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101f4371fb198b011bb666a3bfde',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Đen',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Sol7',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101fcc911aa2866d62f7bd5e5894',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Ngơ',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101f6994e627c5b26909bc8ba813',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Binz',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101fc1e37930853ff1686dcdd567',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'W/N',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab6761610000101f316c0f0bc6cf3a29c203ab1e',
+//         date: '16 thg 6, 2024',
+//     },
+//     {
+//         name: 'Guilty Gear Strive',
+//         type: 'Nghệ sĩ',
+//         img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
+//         date: '16 thg 6, 2024',
+//     },
+// ];
 
 // Placeholder cho dữ liệu playlist
-const placeholderPlaylists = [
-    {
-        id: 1,
-        name: 'Playlist của tôi #1',
-        type: 'Danh sách phát',
-        img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
-        date: '10 thg 5, 2024',
-    },
-    {
-        id: 2,
-        name: 'Nhạc chill cuối tuần',
-        type: 'Danh sách phát',
-        img: 'https://i.scdn.co/image/ab67616d0000b27394c9217a398f5174757c0c78',
-        date: '12 thg 5, 2024',
-    }
-];
+// const placeholderPlaylists = [
+//     {
+//         id: 1,
+//         name: 'Playlist của tôi #1',
+//         type: 'Danh sách phát',
+//         img: 'https://i.scdn.co/image/ab67616d0000b273051d84b6cac537e613b6d5a9',
+//         date: '10 thg 5, 2024',
+//     },
+//     {
+//         id: 2,
+//         name: 'Nhạc chill cuối tuần',
+//         type: 'Danh sách phát',
+//         img: 'https://i.scdn.co/image/ab67616d0000b27394c9217a398f5174757c0c78',
+//         date: '12 thg 5, 2024',
+//     }
+// ];
 
 const SidePart = () => {
     let sidebarRef;
@@ -86,7 +88,8 @@ const SidePart = () => {
     const [searchField, setSearchField] = createSignal(false);
     const [viewMode, setViewMode] = createSignal('artists'); // 'artists' hoặc 'playlists'
     const [searchQuery, setSearchQuery] = createSignal('');
-    const [playlists, setPlaylists] = createSignal(placeholderPlaylists);
+    const [playlists, setPlaylists] = createSignal([]);
+    const [followedArtists, setfollowedArtists] = createSignal([]);
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const defaultplaylist = import.meta.env.default_playlist_img;
     const navigate = useNavigate();
@@ -94,6 +97,17 @@ const SidePart = () => {
     onMount(() => {
         initFlowbite();
         loadPlaylists();
+        loadFollowedArtist();
+    });
+
+    createEffect(() => {
+        if (shouldReloadPlaylists()) {
+            loadPlaylists();
+            setShouldReloadPlaylists(false);
+        }else if(shouldReloadFollowedArtists()){
+            loadFollowedArtist();
+            setshouldReloadFollowedArtists(false);
+        }
     });
 
     const loadPlaylists = async () => {
@@ -104,18 +118,36 @@ const SidePart = () => {
                     id: playlist.id,
                     name: playlist.playlist_name || `Playlist #${playlist.id}`,
                     type: 'Danh sách phát',
-                    img: playlist.playlist_picture || "http://localhost:8000/media/playlistsImg/OIP.jpg",
+                    img: `${backendUrl}${playlist.playlist_picture || "http://localhost:8000/media/playlistsImg/OIP.jpg"}`,
                     onclick: () => handleOpenPlaylist(playlist.id),
                 }));
                 //đưa lên đầu
                 formattedPlaylists.unshift({
                     name: "Bài hát đã thích",
                     type: 'Danh sách phát',
-                    img: "http://localhost:8000/media/playlistsImg/OIP.jpg",
+                    img: "http://localhost:8000/media/playlistsImg/liked-songs-300.jpg",
                     onclick: () => handleOpenFavlist(), 
                 });
                 
                 setPlaylists(formattedPlaylists);               
+            }
+        } catch (err) {
+            console.error("Lỗi khi tải danh sách playlist:", err);
+        }
+    };
+
+    const loadFollowedArtist = async () => {
+        try {
+            const result = await getAllfollowedArtistIdsService();
+            if (result && Array.isArray(result.favArtistList)) {
+                const formattedPlaylists = result.favArtistList.map(artist => ({
+                    id: artist.id,
+                    name: artist.artist_name || `Artist #${artist.id}`,
+                    type: 'Nhạc sĩ',
+                    img: `${backendUrl}${artist.picture_url || "http://localhost:8000/media/playlistsImg/OIP.jpg"}`,
+                    onclick: () => handleOpenArtist(artist.id),
+                }));
+                setfollowedArtists(formattedPlaylists);               
             }
         } catch (err) {
             console.error("Lỗi khi tải danh sách playlist:", err);
@@ -157,7 +189,7 @@ const SidePart = () => {
         const query = searchQuery().toLowerCase();
         
         if (viewMode() === 'artists') {
-            return artists.filter(artist => 
+            return followedArtists().filter(artist => 
                 artist.name.toLowerCase().includes(query)
             );
         } else {
@@ -173,6 +205,7 @@ const SidePart = () => {
             console.log("Tạo playlist thành công", result);
             alert("Tạo playlist thành công");
             await loadPlaylists(); // Tải lại danh sách playlist sau khi tạo mới
+            handleOpenPlaylist(result.newPlaylistid);
         } catch (err) {
             console.error("Lỗi khi tạo playlist:", err);
         }
@@ -180,6 +213,10 @@ const SidePart = () => {
 
     const handleOpenPlaylist = (id) => {
         navigate(`/playlist/${id}`)
+    }
+
+    const handleOpenArtist = (id) => {
+        navigate(`/artist/${id}`)
     }
 
     const handleOpenFavlist = () => {
@@ -246,7 +283,7 @@ const SidePart = () => {
                             class="text-base-content whitespace-nowrap scrollbar overflow-auto
             [&::-webkit-scrollbar]:w-8"
                         >
-                            <For each={viewMode() === 'artists' ? artists : playlists()}>
+                            <For each={viewMode() === 'artists' ? followedArtists() : playlists()}>
                                 {(item) => (
                                     <div class="flex items-center hover:bg-base-100 cursor-pointer justify-center rounded-lg box-content p-2">
                                         <img

@@ -8,16 +8,20 @@ import {
     getAllArtistService,
     getAllSongOfArtistByIdService,
     addNewAlbumService,
-    getAllArtistAlbumService
+    getAllArtistAlbumService,
+    getAllPlaylistIdsService,
+    getAllfollowedArtistIdsService,
 } from '../../services/authService';
 import { createGlobalStyles } from 'solid-styled-components';
 import DatePicker from '@rnwonder/solid-date-picker';
 import '@rnwonder/solid-date-picker/dist/style.css';
 import Footer from '../layout/Footer';
-import FollowArtists from '../components/sections/FollowArtists';
+import FollowArtistsCard from '../components/FollowArtistsCard';
 import SidePart from '../components/SidePart';
 import PanelContainer from '../components/PanelContainer';
 import { useNavigate } from "@solidjs/router";
+import PlaylistCard from '../components/PlaylistCard';
+import { useAuth } from '../layout/AuthContext';
 
 const GlobalStyles = createGlobalStyles`
   @keyframes fadeIn {
@@ -40,42 +44,48 @@ const GlobalStyles = createGlobalStyles`
 `;
 
 const Profile = () => {
-    const followArtists = [
-        {
-            id: 1,
-            img: 'https://i.scdn.co/image/ab6761610000101ff8d2c15a9b3c1a049ec4286c',
-            name: 'Bức tường',
-            title: 'Nghệ sĩ',
-        },
-        {
-            id: 2,
-            img: 'https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5',
-            name: 'Đen',
-            title: 'Nghệ sĩ',
-        },
-        {
-            id: 3,
-            img: 'https://i.scdn.co/image/ab67616d00001e029dd14ae4c7377d19d33a58d5',
-            name: 'Trịnh Công Sơn',
-            title: 'Nhạc sĩ',
-        },
-        {
-            id: 4,
-            img: 'https://i.scdn.co/image/ab67616d00001e024cde8ea04aa845a87d08c890',
-            name: 'Văn Cao',
-            title: 'Nhạc sĩ',
-        },
-        {
-            id: 5,
-            img: 'https://i.scdn.co/image/ab67616100005174f1310d077ecfed399b5c7ca9',
-            name: 'Jorn Lande',
-            title: 'Nghệ sĩ',
-        },
-    ];
+    // const followArtists = [
+    //     {
+    //         id: 1,
+    //         img: 'https://i.scdn.co/image/ab6761610000101ff8d2c15a9b3c1a049ec4286c',
+    //         name: 'Bức tường',
+    //         title: 'Nghệ sĩ',
+    //     },
+    //     {
+    //         id: 2,
+    //         img: 'https://i.scdn.co/image/ab6761610000101f91d2d39877c13427a2651af5',
+    //         name: 'Đen',
+    //         title: 'Nghệ sĩ',
+    //     },
+    //     {
+    //         id: 3,
+    //         img: 'https://i.scdn.co/image/ab67616d00001e029dd14ae4c7377d19d33a58d5',
+    //         name: 'Trịnh Công Sơn',
+    //         title: 'Nhạc sĩ',
+    //     },
+    //     {
+    //         id: 4,
+    //         img: 'https://i.scdn.co/image/ab67616d00001e024cde8ea04aa845a87d08c890',
+    //         name: 'Văn Cao',
+    //         title: 'Nhạc sĩ',
+    //     },
+    //     {
+    //         id: 5,
+    //         img: 'https://i.scdn.co/image/ab67616100005174f1310d077ecfed399b5c7ca9',
+    //         name: 'Jorn Lande',
+    //         title: 'Nghệ sĩ',
+    //     },
+    // ];
     const navigate = useNavigate();
     const [uploading, setUploading] = createSignal(false);
     let fileInputRef;
     const [data, { refetch }] = createResource(getUserInformService);
+
+    const visibleFollowedArtists = () => (showAllFollowedArtists() ? followedArtists() : followedArtists().slice(0, 5));
+    const [showAllFollowedArtists, setShowAllFollowedArtists] = createSignal(false);
+
+    const visiblePlaylists = () => (showAllPlaylists() ? allPlaylistIds() : allPlaylistIds().slice(0, 5));
+    const [showAllPlaylists, setShowAllPlaylists] = createSignal(false);
 
     const [showPopup, setShowPopup] = createSignal(false);
     const [showDetail, setShowDetail] = createSignal(false);
@@ -86,6 +96,9 @@ const Profile = () => {
     const [previewImage, setPreviewImage] = createSignal(null);
     const [searchResults, setSearchResults] = createSignal([]);
     const [allAlbum, setAllAlbum] = createSignal([]);
+    const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
+    const [followedArtists, setfollowedArtists] = createSignal([]);
+    const auth = useAuth();
     const [tempData, setTempData] = createSignal({
         full_name: '',
         description: '',
@@ -124,6 +137,8 @@ const Profile = () => {
         if(d?.artist?.id){
             reloadAllAlbum(d.artist.id)
         }
+        reloadAllPlayList();
+        loadFollowedArtist();
     });
 
     const reloadAllAlbum = async (artistId) => {
@@ -136,6 +151,33 @@ const Profile = () => {
         }
     }
 
+    const loadFollowedArtist = async () => {
+        try {
+            const result = await getAllfollowedArtistIdsService();
+            if (result && Array.isArray(result.favArtistList)) {
+                const formattedPlaylists = result.favArtistList.map(artist => ({
+                    id: artist.id,
+                    name: artist.artist_name || `Artist #${artist.id}`,
+                    type: 'Nhạc sĩ',
+                    img: `${backendUrl}${artist.picture_url || "http://localhost:8000/media/playlistsImg/OIP.jpg"}`,
+                    onclick: () => handleOpenArtist(artist.id),
+                }));
+                setfollowedArtists(formattedPlaylists);               
+            }
+        } catch (err) {
+            console.error("Lỗi khi tải danh sách playlist:", err);
+        }
+    };
+        
+    const reloadAllPlayList = async () => {
+        try{
+            const result = await getAllPlaylistIdsService();
+            setAllPlaylistIds(result.playlistList);
+        }catch (err) {
+        console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+    }
+        
     function handleChange(field, value) {
         setTempData((prev) => ({ ...prev, [field]: value }));
     }
@@ -255,6 +297,7 @@ const Profile = () => {
         );
         await addNewAlbumService(formData);
         alert('Tạo album thành công');
+        reloadAllAlbum();
         handlePopupClose();
     }
 
@@ -266,7 +309,11 @@ const Profile = () => {
         <>
             <GlobalStyles />
             <Show when={data()} fallback={<div>Loading...</div>}>
-                <div className="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-gradient-to-b from-[#121212] to-[#121212] text-white">
+                <div classList={{
+                    'h-[calc(100vh-64px-72px)]': auth.currentSong(),
+                    'h-[calc(100vh-64px)]': !auth.currentSong(),
+                    'flex gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300': true
+                }}>
                     <SidePart />
                     <div className="flex-1 overflow-auto rounded-lg bg-[#121212]">
                         <div
@@ -302,13 +349,16 @@ const Profile = () => {
                                 </div>
 
                                 {/* Thông tin user */}
-                                <div className="text-white flex flex-col items-center sm:items-start gap-2">
+                                <div className="text-white flex flex-col items-center sm:items-start gap-2 sm:max-w-[calc(100%-220px)] w-full">
                                     <span className="text-xs tracking-widest uppercase text-[#b3b3b3] font-semibold">Hồ sơ</span>
-                                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold leading-tight drop-shadow-xl text-white">{data().user.full_name}</h1>
+                                    
+                                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight drop-shadow-xl text-white break-words text-center sm:text-left w-full">
+                                        {data().user.full_name}
+                                    </h1>
+
                                     <p className="text-sm sm:text-base text-[#b3b3b3] mt-2">
-                                        11 đang theo dõi •{' '}
                                         {data()?.artist ? (
-                                            <span className="text-white font-medium">{data().artist.followers} người hâm mộ</span>
+                                            <span>{data().artist.followers} đang theo dõi</span>
                                         ) : (
                                             '0 bài hát'
                                         )}
@@ -519,45 +569,45 @@ const Profile = () => {
                                     </div>
 
                                     <div>
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm nghệ sĩ cover cùng..."
-                                        class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
-                                        onInput={async (e) => {
-                                        const query = e.target.value.toLowerCase();
-                                        if (query.length > 1) {
-                                            try {
-                                            const data = await getAllArtistService();
-                                            const filtered = data.artists.filter((artist) =>
-                                                artist.name.toLowerCase().includes(query)
-                                            );
-                                            setSearchResults(filtered);
-                                            } catch (error) {
-                                            console.error('Lỗi tìm nghệ sĩ:', error);
-                                            }
-                                        } else {
-                                            setSearchResults([]);
-                                        }
-                                        }}
-                                    />
-                                    <ul class="border border-gray-600 mt-1 rounded-xl overflow-y-auto max-h-40 bg-[#181818] text-sm text-white">
-                                        {searchResults().map((artist) => (
-                                        <li
-                                            key={artist.id}
-                                            class="cursor-pointer px-4 py-2 hover:bg-[#1db95433] border-b border-gray-700"
-                                            onClick={() => {
-                                            if (!newSong().featuredArtists.includes(artist.name)) {
-                                                setNewSong((s) => ({
-                                                ...s,
-                                                featuredArtists: [...s.featuredArtists, artist],
-                                                }));
+                                        <input
+                                            type="text"
+                                            placeholder="Tìm nghệ sĩ cover cùng..."
+                                            class="w-full bg-[#181818] text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1db954]"
+                                            onInput={async (e) => {
+                                            const query = e.target.value.toLowerCase();
+                                            if (query.length > 1) {
+                                                try {
+                                                const data = await getAllArtistService();
+                                                const filtered = data.artists.filter((artist) =>
+                                                    artist.name.toLowerCase().includes(query)
+                                                );
+                                                setSearchResults(filtered);
+                                                } catch (error) {
+                                                console.error('Lỗi tìm nghệ sĩ:', error);
+                                                }
+                                            } else {
+                                                setSearchResults([]);
                                             }
                                             }}
-                                        >
-                                            {artist.name}
-                                        </li>
-                                        ))}
-                                    </ul>
+                                        />
+                                        <ul class="border border-gray-600 mt-1 rounded-xl overflow-y-auto max-h-40 bg-[#181818] text-sm text-white">
+                                            {searchResults().map((artist) => (
+                                            <li
+                                                key={artist.id}
+                                                class="cursor-pointer px-4 py-2 hover:bg-[#1db95433] border-b border-gray-700"
+                                                onClick={() => {
+                                                if (!newSong().featuredArtists.includes(artist.name)) {
+                                                    setNewSong((s) => ({
+                                                    ...s,
+                                                    featuredArtists: [...s.featuredArtists, artist],
+                                                    }));
+                                                }
+                                                }}
+                                            >
+                                                {artist.name}
+                                            </li>
+                                            ))}
+                                        </ul>
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
@@ -802,11 +852,26 @@ const Profile = () => {
                         )}
 
                         <div class="mt-10">
-                            <h3 class="text-2xl font-semibold mb-4">
-                                Danh sách phát của bạn
-                            </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                <div class="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition">
+                            <div className="flex justify-between">
+                                <h3 class="text-2xl font-semibold mb-4">
+                                    Danh sách phát của bạn
+                                </h3>
+                                <span className="text-[#b3b3b3] font-bold text-sm hover:underline cursor-pointer">
+                                    {allPlaylistIds().length >= 5 && (
+                                        <button
+                                            className="p-4 text-[#ffffffb3] font-bold text-sm cursor-pointer hover:text-white"
+                                            onClick={() => setShowAllPlaylists(!showAllPlaylists())}
+                                        >
+                                            {showAllPlaylists() ? 'Thu gọn' : 'Hiện tất cả'}
+                                        </button>
+                                    )}
+                                </span>
+                            </div>
+                            <div className="grid auto-rows-auto grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+                                {visiblePlaylists().map((playlist, index) => (
+                                    <PlaylistCard key={index} {...playlist} />
+                                ))}
+                                {/* <div class="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition">
                                     <div class="h-40 bg-gray-700 rounded mb-3">
                                         <img
                                             className="h-[160px] w-[301px]"
@@ -829,8 +894,7 @@ const Profile = () => {
                                     <p class="text-sm text-gray-400">
                                         Playlist • 30 songs
                                     </p>
-                                </div>
-                                {/* Add more playlists here */}
+                                </div> */}
                             </div>
                         </div>
                         
@@ -858,25 +922,34 @@ const Profile = () => {
                             </div>
                         )}
                         
-                        <div class="mt-10">
-                            <div className="flex justify-between">
-                                <h3 class="text-2xl font-semibold mb-4">
-                                    Đang theo dõi
-                                </h3>
-                                <span className="text-[#b3b3b3] font-bold text-sm hover:underline cursor-pointer">
-                                    Hiện tất cả
-                                </span>
+                        {followedArtists().length > 0 && 
+                            <div class="mt-10">
+                                <div className="flex justify-between">
+                                    <h3 class="text-2xl font-semibold mb-4">
+                                        Đang theo dõi
+                                    </h3>
+                                    <span className="text-[#b3b3b3] font-bold text-sm hover:underline cursor-pointer">
+                                        {followedArtists().length > 5 && (
+                                            <button
+                                                className="p-4 text-[#ffffffb3] font-bold text-sm cursor-pointer hover:text-white"
+                                                onClick={() => setShowAllFollowedArtists(!showAllFollowedArtists())}
+                                            >
+                                                {showAllFollowedArtists() ? 'Thu gọn' : 'Hiện tất cả'}
+                                            </button>
+                                        )}
+                                    </span>
+                                </div>
+                                <div
+                                    style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                                grid-template-rows: repeat(1, minmax(0, 1fr));"
+                                    className="grid pb-[60px]"
+                                >
+                                    {visibleFollowedArtists().map((followArtist) => (
+                                        <FollowArtistsCard {...followArtist} />
+                                    ))}
+                                </div>
                             </div>
-                            <div
-                                style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                            grid-template-rows: repeat(1, minmax(0, 1fr));"
-                                className="grid pb-[60px]"
-                            >
-                                {followArtists.map((followArtist) => (
-                                    <FollowArtists {...followArtist} />
-                                ))}
-                            </div>
-                        </div>
+                        }
                         <Footer />
                     </div>
 

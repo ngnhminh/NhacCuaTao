@@ -6,6 +6,8 @@ from Artists.models import Artist
 from Songs.models import Song
 from Users.models import User
 from ArtistOfSong.models import ArtistOfSong
+from Notification.models import Notification
+from ArtistFollow.models import ArtistFollow
 from datetime import datetime
 from django.http import JsonResponse
 from mongoengine.errors import DoesNotExist, ValidationError
@@ -15,6 +17,8 @@ import json
 from django.core.files.base import ContentFile
 from django.conf import settings
 from mutagen.mp3 import MP3
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # Create your views here.
 class RequestView(APIView):
@@ -223,6 +227,42 @@ class SongApproveFormView(APIView):
                         "created ArtistOfSong": True,
                         "ArtistOfSongId": str(artist_of_song.id)
                     }, status=201)
+
+                follower_users = ArtistFollow.objects.filter(artist=artist)
+                current_time = datetime.now()
+                
+                for data in follower_users:
+                    new_notification = {
+                        "type": "user",
+                        "artist": artist,
+                        "status": 0,
+                        "description": " đã tải lên: " + new_song.song_name,
+                        "time": current_time,
+                        "img": new_song.picture_url,
+                        "user": data.user
+                    }
+                    Notification.objects.create(**new_notification)
+                
+                #Hàm gửi thông báo tới channel
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"artist_{str(artist.id)}",
+                    {
+                        "type": "send_notification",
+                        "message": {
+                            "type": "user_notification",
+                            "text": f"Ca sĩ {artist.artist_name} vừa đăng bài hát mới: {new_song.song_name}",
+                            "status": 0,
+                            "description": "đã tải lên bài hát mới: " + new_song.song_name,
+                            "time": current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                            "img": new_song.picture_url,
+                            "artist": {
+                                "artist_name": artist.artist_name,
+                                "avatar_url": artist.user.avatar_url
+                            }
+                        }
+                    }
+                )
 
                 return JsonResponse({
                     "created Song": True,

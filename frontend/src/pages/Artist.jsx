@@ -37,6 +37,7 @@ const Artist = () => {
     const [imgSize, setImgSize] = createSignal('auto');
     const [scalebtn, setScalebtn] = createSignal();
     const [scaletxt, setScaletxt] = createSignal();
+    const auth = useAuth();
 
     const gridCols = createMemo(() => {
         return isSidebarVisible() ? 'grid-cols-2' : 'grid-cols-3';
@@ -76,7 +77,11 @@ const Artist = () => {
     });
 
     return (
-        <div className="flex h-[calc(100vh-64px-72px)] gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300">
+        <div classList={{
+            'h-[calc(100vh-64px-72px)]': auth.currentSong(),
+            'h-[calc(100vh-64px)]': !auth.currentSong(),
+            'flex gap-3 px-3 pb-3 pt-1 overflow-hidden w-full bg-base-300': true
+        }}>
             <SidePart />
 
             <Show

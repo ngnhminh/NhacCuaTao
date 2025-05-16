@@ -88,7 +88,6 @@ export default function Playbar() {
         setHasCounted(false);
         setCurrentTime(0);
         setProgress(0);
-        
         // Tự động phát khi thay đổi bài hát nếu đang trong trạng thái phát
         if (isPlaying() && audioRef) {
             audioRef.play().catch(err => {
@@ -97,7 +96,21 @@ export default function Playbar() {
             });
         }
     });
-
+    createEffect(() => {
+        // Theo dõi thay đổi của playlist
+        auth.currentPlaylist();
+        setHasCounted(false);
+        setCurrentTime(0);
+        setProgress(0);
+        // Tự động phát khi thay đổi bài hát nếu đang trong trạng thái phát
+        if (isPlaying() && audioRef) {
+            audioRef.play().catch(err => {
+                console.error("Lỗi khi tự động phát bài hát mới:", err);
+                setIsPlaying(false);
+            });
+        }
+    });
+    
     //Tăng lượt nghe
     const increaseViewCount = async (id) => {
         try{
@@ -158,15 +171,13 @@ export default function Playbar() {
     
     // Xử lý chuyển bài trước đó
     const handlePrevious = () => {
-        // Implement logic to play previous song
-        // Ví dụ: auth.playPreviousSong();
+        auth.playPreviousSong();
         console.log("Chuyển đến bài hát trước");
     };
     
     // Xử lý chuyển bài tiếp theo
     const handleNext = () => {
-        // Implement logic to play next song
-        // Ví dụ: auth.playNextSong();
+        auth.playNextSong();
         console.log("Chuyển đến bài hát tiếp theo");
     };
 
@@ -177,11 +188,39 @@ export default function Playbar() {
         // Nếu ở chế độ replay all, chơi bài tiếp theo
         if (replayMode() === 1) {
             handleNext();
+            if (audioRef) {
+                audioRef.play().catch(err => {
+                    console.error("Lỗi khi tự động phát bài hát tiếp theo:", err);
+                });
+            }
         } 
-        // Nếu ở chế độ replay one, đã được xử lý bởi thuộc tính loop của audio
-        // Nếu không replay, dừng phát
+        else if (shuffleState.active()) {
+            playRandomSong();
+        }
     };
 
+    // Hàm phát ngẫu nhiên
+    const playRandomSong = () => {
+        if (auth.currentPlaylist().length <= 1) return;
+        
+        // Tạo index ngẫu nhiên khác với index hiện tại
+        let randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * auth.currentPlaylist().length);
+        } while (randomIndex === auth.currentIndex() && auth.currentPlaylist().length > 1);
+        
+        // Cập nhật index và bài hát hiện tại
+        const song = auth.currentPlaylist()[randomIndex];
+        auth.startPlaylist(auth.currentPlaylist(), randomIndex);
+        
+        // Tự động phát
+        if (audioRef) {
+            audioRef.play().catch(err => {
+                console.error("Lỗi khi phát bài hát ngẫu nhiên:", err);
+            });
+        }
+    };
+    
     function formatTime(seconds) {
         if (isNaN(seconds) || seconds < 0) return "0:00";
         const mins = Math.floor(seconds / 60);
@@ -222,7 +261,7 @@ export default function Playbar() {
                 <FavouriteButton 
                     songId={auth.currentSong().id} favoriteSongIds={favoriteSongIds()} 
                     reloadFavoriteList={reloadFavoriteList} 
-                    position={"dropdown dropdown-end dropdown-bottom top-3 "}
+                    position={"dropdown dropdown-up dropdown-top top-3 "}
                     playlists = {allPlaylistIds()}
                     reloadPlaylistList={reloadAllPlayList}
                 />

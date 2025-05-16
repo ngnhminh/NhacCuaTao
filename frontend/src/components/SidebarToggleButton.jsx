@@ -5,7 +5,7 @@ const SidebarToggleButton = (props) => {
     <button
       onClick={props.onClick}
       type="button"
-      class="btn btn-circle btn-ghost text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-base-100 dark:hover:text-white"
+      class="btn btn-circle btn-ghost bg-black text-white hover:bg-white hover:text-black"
     >
       <Lib />
       <span class="sr-only">Toggle sidebar</span>

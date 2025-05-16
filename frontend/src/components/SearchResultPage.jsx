@@ -1,8 +1,9 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { useAuth } from '../layout/AuthContext';
 import FavouriteButton from '../components/FavouriteButton';
-import { getAllFavoriteSongIdsService, getAllPlaylistIdsService } from "../../services/authService";
+import { getAllFavoriteSongIdsService, getAllPlaylistIdsService, addToHistoryService } from "../../services/authService";
 import { useNavigate } from "@solidjs/router";
+import {setShouldReloadHistory} from "../stores/homeStore";
 
 const SearchResultPage = () => {
   const auth = useAuth();
@@ -12,6 +13,9 @@ const SearchResultPage = () => {
   const [favoriteSongIds, setFavoriteSongIds] = createSignal([]);
   const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
 
+  const [openDropdownSongId, setOpenDropdownSongId] = createSignal(null);
+  const [songDropdownRefs, setSongDropdownRefs] = createSignal({});
+
   const reloadFavoriteList = async () => {
     try {
       const result = await getAllFavoriteSongIdsService();
@@ -19,6 +23,22 @@ const SearchResultPage = () => {
     } catch (err) {
       console.error('Lỗi khi load danh sách yêu thích:', err);
     }
+  };
+
+  const handleClickOutsideSong = (e) => {
+      const currentOpenIndex = openDropdownSongId();
+      if (currentOpenIndex !== null) {
+          const dropdownRef = songDropdownRefs()[currentOpenIndex];
+          if (dropdownRef && !dropdownRef.contains(e.target)) {
+              setOpenDropdownSongId(null);
+          }
+      }
+  };
+
+  const toggleDropdownSong = (index) => (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpenDropdownSongId(openDropdownSongId() === index ? null : index);
   };
 
   //Hàm chuyển đổi thời gian
@@ -42,6 +62,17 @@ const SearchResultPage = () => {
     reloadAllPlayList();
   });
 
+  
+  //Khởi tạo event
+  onMount(() => {
+      initFlowbite();
+
+      document.addEventListener('click', handleClickOutsideSong);
+
+      onCleanup(() => {
+          document.removeEventListener('click', handleClickOutsideSong);
+      });
+  });
 //   const songs = [
 //     {
 //       id: 1,
@@ -73,8 +104,19 @@ const SearchResultPage = () => {
 //     },
 //   ];
 
+  const addToHistory = async(song) => {
+    await addToHistoryService(song);
+  }
+
   const playSong = (song) => {
     auth.setCurrentSong(song);
+    addToHistory(song);
+    setShouldReloadHistory(true);
+  };
+
+  const handleDownloadSong = (songId) => {
+    const url = `${backendUrl}/api/songs/SongGetView/?action=downloadSong&songId=${songId}`;
+    window.open(url, "_blank"); 
   };
 
   return (
@@ -112,7 +154,7 @@ const SearchResultPage = () => {
         {/* Left Side - Top Result */}
         <div class="w-1/3">
           <h2 class="text-2xl font-bold mb-4">Top result</h2>
-          {auth.results().map((artist) => (
+          {auth.results().slice(0,1).map((artist) => (
             <div
               class="rounded-lg p-1 cursor-pointer transition duration-200 hover:brightness-130"
               onClick={() => navigate(`/artist/${artist.id}`)}
@@ -138,7 +180,7 @@ const SearchResultPage = () => {
           <div class="flex flex-col gap-2">
             {auth.resultsSong().slice(0, 4).map((song) => (
               <div
-                class="flex items-center p-2 rounded-md hover:bg-zinc-800 cursor-pointer"
+                class="group flex items-center p-2 rounded-md hover:bg-zinc-800 cursor-pointer"
                 onClick={() => playSong(song)}
               >
                 <div class="w-12 h-12 mr-4">
@@ -154,7 +196,7 @@ const SearchResultPage = () => {
                     {song.artist?.artist_name}
                     {song.artists?.map((artist, index) => (
                       <span key={artist.id}>
-                        {artist.artist_name}
+                        , {artist.artist_name}
                         {index < song.artists.length - 1 ? ', ' : ''}
                       </span>
                     ))}
@@ -172,16 +214,37 @@ const SearchResultPage = () => {
                   <span class="text-gray-400">
                     {formatTime(song.duration)}
                   </span>
-                  <button class="p-2 rounded-full hover:bg-zinc-700">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                  <div className="relative">
+                    <button 
+                      className="text-[#b3b3b3] cursor-pointer py-2 mr-3 opacity-0 group-hover:opacity-100"
+                      onClick={() => setOpenDropdownSongId(song.id)}
+                      ref={(el) => {
+                        const refs = songDropdownRefs();
+                        refs[song.id] = el;
+                        setSongDropdownRefs(refs);
+                      }}
                     >
-                      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                  </button>
+                      <svg
+                        role="img"
+                        viewBox="0 0 16 16"
+                        className="w-4 h-4 fill-current"
+                      >
+                        <path d="M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path>
+                      </svg>
+                    </button>
+                    <Show when={openDropdownSongId() === song.id}>
+                      <div className="absolute z-50 w-64 mt-2 right-0 bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-700">
+                        <ul className="py-2 text-sm text-gray-200">
+                          <li
+                            onClick={() => handleDownloadSong(song.id)}
+                            className="block px-4 py-2 hover:bg-gray-600 hover:text-white cursor-pointer"
+                          >
+                            Tải về
+                          </li>
+                        </ul>
+                      </div>
+                    </Show>
+                  </div>
                 </div>
               </div>
             ))}

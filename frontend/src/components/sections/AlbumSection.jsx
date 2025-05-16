@@ -2,11 +2,13 @@ import { useAuth } from '../../layout/AuthContext';
 import {getAlbumInformService, 
         getSongsInAlbumIdsService,
         getAllPlaylistIdsService,
-        getAllFavoriteSongIdsService, } from '../../../services/authService';
-import { onCleanup, Show, createSignal, createEffect } from 'solid-js';
+        getAllFavoriteSongIdsService,
+        getAllArtistAlbumService, addToHistoryService} from '../../../services/authService';
+import { onCleanup, Show, createSignal, createEffect, createMemo, onMount } from 'solid-js';
 import AlbumCard from '../AlbumCard';
 import { useParams } from "@solidjs/router";
 import FavouriteButton from '../../components/FavouriteButton';
+import {setShouldReloadHistory} from "../../stores/homeStore";
 
 export default function MainSection() {
     const params = useParams();
@@ -17,6 +19,53 @@ export default function MainSection() {
     const [allPlaylistIds, setAllPlaylistIds] = createSignal([]);
     const [loading, setLoading] = createSignal(true);
     const [songs, setSongs] = createSignal([]);
+    const [allAlbum, setAllAlbum] = createSignal([]);
+
+    const [openDropdownIndex, setOpenDropdownIndex] = createSignal(null);
+    const [songDropdownRefs, setSongDropdownRefs] = createSignal({});
+
+    let dropdownButtonRef;
+    const [dropdownOpen, setDropdownOpen] = createSignal(false);
+
+    const toggleDropdown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDropdownOpen(!dropdownOpen());
+    };
+
+    const toggleDropdownSong = (index) => (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpenDropdownIndex(openDropdownIndex() === index ? null : index);
+    };
+
+    //đóng dropdown khi bấm ra ngoài
+    const handleClickOutside = (e) => {
+        if (dropdownButtonRef && !dropdownButtonRef.contains(e.target)) {
+            setDropdownOpen(false);
+        }
+    };
+
+    const handleClickOutsideSong = (e) => {
+        const currentOpenIndex = openDropdownIndex();
+        if (currentOpenIndex !== null) {
+            const dropdownRef = songDropdownRefs()[currentOpenIndex];
+            if (dropdownRef && !dropdownRef.contains(e.target)) {
+                setOpenDropdownIndex(null);
+            }
+        }
+    };
+
+    onMount(() => {
+        // Thêm lắng nghe sự kiện khi bấm r angoaif
+        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('click', handleClickOutsideSong);
+        // Khi componetn hủy loại sự kiện lắng nghe
+        onCleanup(() => {
+            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('click', handleClickOutsideSong);
+        });
+    });
 
     const convert_seconds_to_time = (seconds) => {
         const minutes = seconds / 60;
@@ -95,33 +144,43 @@ export default function MainSection() {
     //     },
     // ];
 
-    const albums = [
-        {
-            imgSrc: 'https://i.scdn.co/image/ab67616d00001e0264fff4911371aa61b1672b10',
-            title: 'Con đường không tên',
-            year: '2020',
-        },
-        {
-            imgSrc: 'https://i.scdn.co/image/ab67616d00001e020c6211ec7b9c2bb396ef10cb',
-            title: 'Cân bằng',
-            year: '2023',
-        },
-        {
-            imgSrc: 'https://i.scdn.co/image/ab67616d00001e02bb9722d7560ee2545864029a',
-            title: 'Cơn mưa tháng 5 (Special edition 2020)',
-            year: '2020',
-        },
-        {
-            imgSrc: 'https://i.scdn.co/image/ab67616d00001e0200953ab29a88f444d582c9c7',
-            title: 'Đường đến đỉnh vinh quang',
-            year: '2013',
-        },
-        {
-            imgSrc: 'https://i.scdn.co/image/ab67616d00001e020ecd1c9f2bd6b3e99be97b79',
-            title: 'Nơi đó có chúng ta thuộc về nhau',
-            year: '2023',
-        },
-    ];
+    // const albums = [
+    //     {
+    //         imgSrc: 'https://i.scdn.co/image/ab67616d00001e0264fff4911371aa61b1672b10',
+    //         title: 'Con đường không tên',
+    //         year: '2020',
+    //     },
+    //     {
+    //         imgSrc: 'https://i.scdn.co/image/ab67616d00001e020c6211ec7b9c2bb396ef10cb',
+    //         title: 'Cân bằng',
+    //         year: '2023',
+    //     },
+    //     {
+    //         imgSrc: 'https://i.scdn.co/image/ab67616d00001e02bb9722d7560ee2545864029a',
+    //         title: 'Cơn mưa tháng 5 (Special edition 2020)',
+    //         year: '2020',
+    //     },
+    //     {
+    //         imgSrc: 'https://i.scdn.co/image/ab67616d00001e0200953ab29a88f444d582c9c7',
+    //         title: 'Đường đến đỉnh vinh quang',
+    //         year: '2013',
+    //     },
+    //     {
+    //         imgSrc: 'https://i.scdn.co/image/ab67616d00001e020ecd1c9f2bd6b3e99be97b79',
+    //         title: 'Nơi đó có chúng ta thuộc về nhau',
+    //         year: '2023',
+    //     },
+    // ];
+
+    const reloadAllAlbum = async (artistId) => {
+        try{
+            const result = await getAllArtistAlbumService(artistId);
+            console.log("thông tin hàm allALbum " + result)
+            setAllAlbum(result.albumList);
+        }catch (err) {
+        console.error("Lỗi khi load danh sách yêu thích:", err);
+        }
+    }
 
     //Hàm chuyển đổi thời gian
     const formatTime = (seconds) => {
@@ -136,11 +195,18 @@ export default function MainSection() {
         getSongs(albumId);
         reloadFavoriteList();
         reloadAllPlayList();
-    
         // Cleanup nếu cần hủy socket hay setInterval khi component bị huỷ
         onCleanup(() => {
             // cleanup code nếu cần
         });
+    });
+
+    const artistId = createMemo(() => albumDetail()?.artist?.id);
+
+    createEffect(() => {
+        if (artistId()) {
+            reloadAllAlbum(artistId());
+        }
     });
 
     const getData = async (id) => {
@@ -170,9 +236,28 @@ export default function MainSection() {
         }
     }
 
+    const addToHistory = async(song) => {
+        await addToHistoryService(song);
+    }
+
     const playSong = (song) => {
         auth.setCurrentSong(song);
+        addToHistory(song);
+        setShouldReloadHistory(true);
     };
+    
+    const handleDownloadSong = (songId) => {
+        const url = `${backendUrl}/api/songs/SongGetView/?action=downloadSong&songId=${songId}`;
+        window.open(url, "_blank"); 
+    };
+    
+    const playAllAlbum = () => {
+        const playlist = songs();
+        auth.setCurrentPlaylist(playlist);
+        auth.startPlaylist(playlist, 0);
+        // setIsPlaying(true); // nếu muốn phát ngay
+    };
+
 
     return (
         <Show when = {!loading()}
@@ -238,7 +323,7 @@ export default function MainSection() {
                     <div className="flex items-start p-6">
                         <div className="flex flex-row items-center">
                             <div className="shrink mr-4">
-                                <button className="self-center rounded-[9999px] cursor-pointer inline-block text-center align-middle will-change-transform hover:scale-[1.04]">
+                                <button className="self-center rounded-[9999px] cursor-pointer inline-block text-center align-middle will-change-transform hover:scale-[1.04]"  onClick={()=>{playAllAlbum()}}>
                                     <span className="h-14 w-14 items-center bg-[#1ed760] rounded-[9999px] text-black flex justify-center hover:bg-[#3be477]">
                                         <span aria-hidden="true">
                                             <svg
@@ -265,17 +350,42 @@ export default function MainSection() {
                                     </svg>
                                 </span>
                             </button>
-                            <button className="mr-4 cursor-pointer py-3 text-[#b3b3b3] hover:text-white hover:scale-[1.04]">
-                                <span aria-hidden="true">
-                                    <svg
-                                        role="img"
-                                        viewBox="0 0 24 24"
-                                        className="w-8 h-8 fill-current"
-                                    >
-                                        <path d="M4.5 13.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm15 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7.5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
-                                    </svg>
-                                </span>
-                            </button>
+                            <div className="relative">
+                                <button 
+                                    type="button"
+                                    className="mr-4 cursor-pointer py-3 text-[#b3b3b3] hover:text-white hover:scale-[1.04]"
+                                    onClick={toggleDropdown}
+                                    ref={dropdownButtonRef}
+                                >
+                                    <span aria-hidden="true">
+                                        <svg
+                                            role="img"
+                                            viewBox="0 0 24 24"
+                                            className="w-8 h-8 fill-current"
+                                        >
+                                            <path d="M4.5 13.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm15 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7.5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                                
+                                <Show when={dropdownOpen()}>
+                                    <div className="absolute z-50 w-64 mt-2 bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-700">
+                                        <div className="p-3 text-sm text-white font-medium">
+                                            Cài đặt
+                                        </div>
+                                        <ul className="py-2 text-sm text-gray-200">
+                                            <li onClick={() => handleRemovePlaylist()}>
+                                                <a
+                                                    href="#"
+                                                    className="block px-4 py-2 hover:bg-gray-600 hover:text-white"
+                                                >
+                                                   Thêm vào Mục yêu thích
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </Show>
+                            </div>
                         </div>
                         <div className="flex flex-[1] gap-2 justify-end">
                             <button className="flex items-center rounded-sm text-[#ffffffb3] h-8 gap-2 cursor-pointer hover:text-white">
@@ -328,7 +438,7 @@ export default function MainSection() {
                         </div>
 
                         {songs().map((song, index) => (
-                            <div className="h-14 pl-6 mb-4 hover:bg-[#ffffff1a] cursor-pointer rounded-sm group">
+                            <div className="h-14 pl-6 mb-4 hover:bg-[#ffffff1a] cursor-pointer rounded-sm group" onClick={() => playSong(song)}>
                                 <div className="grid grid-cols-[16px_minmax(120px,_var(--col1,_4fr))_minmax(120px,_var(--col2,_1fr))] gap-4 h-14">
                                     <div className="flex justify-self-end items-center w-full">
                                         <div
@@ -401,15 +511,37 @@ export default function MainSection() {
                                         <div className="text-[#ffbdb9] text-sm font-normal mr-3">
                                             {formatTime(song.duration)}
                                         </div>
-                                        <button className="text-[#b3b3b3] cursor-pointer py-2 mr-3 opacity-0 group-hover:opacity-100">
-                                            <svg
-                                                role="img"
-                                                viewBox="0 0 16 16"
-                                                className="w-4 h-4 fill-current"
+                                        <div className="relative">
+                                            <button 
+                                                className="text-[#b3b3b3] cursor-pointer py-2 mr-3 opacity-0 group-hover:opacity-100"
+                                                onClick={toggleDropdownSong(index)}
+                                                ref={(el) => {
+                                                    const refs = songDropdownRefs();
+                                                    refs[index] = el;
+                                                    setSongDropdownRefs(refs);
+                                                }}
                                             >
-                                                <path d="M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path>
-                                            </svg>
-                                        </button>
+                                                <svg
+                                                    role="img"
+                                                    viewBox="0 0 16 16"
+                                                    className="w-4 h-4 fill-current"
+                                                >
+                                                    <path d="M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path>
+                                                </svg>
+                                            </button>
+                                            <Show when={openDropdownIndex() === index}>
+                                                <div className="absolute z-50 w-64 mt-2 right-0 bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-700">
+                                                    <ul className="py-2 text-sm text-gray-200">
+                                                        <li
+                                                            onClick={() => handleDownloadSong(song.id)}
+                                                            className="block px-4 py-2 hover:bg-gray-600 hover:text-white cursor-pointer"
+                                                        >
+                                                            Tải về
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </Show>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -437,7 +569,7 @@ export default function MainSection() {
                             <div className="flex justify-between items-center mb-2">
                                 <div className="font-bold cursor-pointer hover:underline">
                                     <a className="text-2xl">
-                                        Album khác của Bức Tường
+                                        Album khác của {albumDetail()?.artist.artist_name}
                                     </a>
                                 </div>
                                 <div className="text-[#b3b3b3] font-bold cursor-pointer hover:underline">
@@ -447,7 +579,7 @@ export default function MainSection() {
                                 </div>
                             </div>
                             <div className="grid auto-rows-auto grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
-                                {albums.map((album, index) => (
+                                {allAlbum().map((album, index) => (
                                     <AlbumCard key={index} {...album} />
                                 ))}
                             </div>

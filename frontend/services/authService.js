@@ -1,12 +1,16 @@
 import { login, logout,  getUserInform, uploadAvatar, updateArtistInform} from "../api/loginApiController"; 
 import {requestArtistApprove, requestSongApprove} from "../api/requestApiController"; 
 import {getAllArtist, getArtistInform} from "../api/artistApiController"; 
-import {getAllSong, getAllSongOfArtistById, increaseViewCount} from "../api/songApiController"
-import {createPlaylist, getAllPlaylistIds, getPlaylistInform} from "../api/playlistApiController"
+import {getAllfollowedArtistIds, followArtist, unfollowArtist} from "../api/artistFollowApiController"; 
+import {getAllSong, getAllSongOfArtistById, increaseViewCount, downloadSong} from "../api/songApiController"
+import {createPlaylist, getAllPlaylistIds, getPlaylistInform, uploadPlaylistAvatar, updatePlaylistInform, removePlaylist} from "../api/playlistApiController"
 import {findSongInFavoriteSong, likedSong, getAllFavoriteSongIds, unlikedSong, getFavListInform} from "../api/favoriteSongApiController"
-import {addSongInPlaylist, getSongsInPlaylistIds} from "../api/songInPlaylistApiController"
+import {addSongInPlaylist, getSongsInPlaylistIds, removeSongInPlaylist} from "../api/songInPlaylistApiController"
 import {getSongsInAlbumIds} from "../api/songInAlbumApiController"
 import {addNewAlbum, getAllArtistAlbum, getAlbumInform} from "../api/albumApiController"
+import {getAllNotification, notificationReaded} from "../api/notificationApiController"
+import {getAllHistory, addToHistory} from "../api/historyApiController"
+
 export const loginService = async (userInformation) => {
   // console.log(userInformation);
   try {
@@ -16,6 +20,7 @@ export const loginService = async (userInformation) => {
         console.log("ok")
     //Lưu token người dùng
     localStorage.setItem("userToken", data.token);
+    if(data?.artist_token) localStorage.setItem("artistToken", data.artist_token);
     return data;
   } catch (error) {
     console.error("Login Service Error:", error.message);
@@ -62,6 +67,16 @@ export const uploadAvatarService = async (formData) => {
   }
 };
 
+export const uploadPlaylistAvatarService = async (formData) => {
+  try{
+    const data = await uploadPlaylistAvatar(formData);
+    return data;
+  }catch (error){
+    console.error("Get Info error:", error.message);
+    throw error;
+  }
+};
+
 export const requestArtistApproveService = async (fblink) => {
   try{
     const data = await requestArtistApprove(fblink);
@@ -86,6 +101,16 @@ export const getAllArtistService = async () => {
 export const updateArtistInformService = async (tempdata) => {
   try{
     const data = await updateArtistInform(tempdata);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const updatePlaylistInformService = async (tempdata) => {
+  try{
+    const data = await updatePlaylistInform(tempdata);
     return data;
   }catch (error){
     console.error("Request error:", error.message);
@@ -147,6 +172,16 @@ export const likedSongService = async (songId) => {
 export const unlikedSongService = async (songId) => {
   try{
     const data = await unlikedSong(songId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getAllfollowedArtistIdsService = async () => {
+  try{
+    const data = await getAllfollowedArtistIds();
     return data;
   }catch (error){
     console.error("Request error:", error.message);
@@ -268,6 +303,96 @@ export const getAllArtistAlbumService = async (id) => {
 export const getAlbumInformService = async (albumId) => {
   try{
     const data = await getAlbumInform(albumId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const removeSongInPlaylistService = async (songId, playlistId) => {
+  try{
+    const data = await removeSongInPlaylist(songId, playlistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const followArtistService = async (artistId) => {
+  try{
+    const data = await followArtist(artistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const unfollowArtistService = async (artistId) => {
+  try{
+    const data = await unfollowArtist(artistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const removePlaylistService = async (playlistId) => {
+  try{
+    const data = await removePlaylist(playlistId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const downloadSongService = async (songId) => {
+  try{
+    const data = await downloadSong(songId);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getAllNotificationService = async (type) => {
+  try{
+    const data = await getAllNotification(type);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const notificationReadedService = async (type) => {
+  try{
+    const data = await notificationReaded(type);
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const getAllHistoryService = async () => {
+  try{
+    const data = await getAllHistory();
+    return data;
+  }catch (error){
+    console.error("Request error:", error.message);
+    throw error;
+  }
+}
+
+export const addToHistoryService = async (song) => {
+  try{
+    const data = await addToHistory(song);
     return data;
   }catch (error){
     console.error("Request error:", error.message);

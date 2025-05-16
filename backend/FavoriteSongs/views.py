@@ -123,11 +123,20 @@ class FavoriteSongPostView(APIView):
 class FavoriteSongDeleteView(APIView):
     def delete(self, request, id):
         try:
-            song = Song.objects.get(id=ObjectId(id))
-            unlike_song = FavoriteSongs.objects.filter(song=song).first()
-            if not unlike_song:
-                return JsonResponse({"error": "Bài hát không nằm trong danh sách yêu thích"}, status=404)
-            unlike_song.delete()
-            return JsonResponse({"message": "Xóa thành công", "removed": True}, status=200)
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith("Token "):
+                token = auth_header.split(' ')[1]
+                auth_token = AuthToken.objects.filter(token=token).first()
+
+                if auth_token:
+                    user = auth_token.user
+                    song = Song.objects.get(id=ObjectId(id))
+                    unlike_song = FavoriteSongs.objects.get(user=user, song=song)
+                    if not unlike_song:
+                        return JsonResponse({"error": "Bài hát không nằm trong danh sách yêu thích"}, status=404)
+                    unlike_song.delete()
+                    return JsonResponse({"message": "Xóa thành công", "removed": True}, status=200)
+                return JsonResponse({"error": "Unauthorized"}, status=401)
+            return JsonResponse({"error": "No Authoriztion"}, status=401)
         except (ObjectDoesNotExist, InvalidId):
             return JsonResponse({"error": "Không tìm thấy hoặc ID không hợp lệ"}, status=404)

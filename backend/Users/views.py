@@ -8,6 +8,8 @@ from rest_framework.response import Response
 import uuid
 from django.core.files.storage import default_storage
 from django.conf import settings
+from Artists.models import Artist
+
 # Create your views here.
 
 class LoginView(APIView):
@@ -17,21 +19,35 @@ class LoginView(APIView):
             email = data.get("email")
             password = data.get("password")
             user = User.objects.get(email=email)
+            
             if check_password(password, user.password):
                 token = str(uuid.uuid4())
-                AuthToken.objects.create(user=user, token=token)
-                return JsonResponse({
+                
+                response_data = {
                     "token": token,
                     "user_id": str(user.id),
                     "fullname": user.full_name,
                     "email": user.email,
                     "avatar_url": user.avatar_url
-                })
+                }
+
+                artist = Artist.objects.filter(user=user).first()
+
+                if artist:
+                    artist_token = str(uuid.uuid4())
+                    response_data["artist_id"] = str(artist.id)
+                    response_data["artist_token"] = artist_token
+                    response_data["artist_name"] = artist.artist_name
+                    AuthToken.objects.create(user=user, token=token, artist=artist)
+                else:
+                    AuthToken.objects.create(user=user, token=token)
+                    
+                return JsonResponse(response_data)
             else:
                 return JsonResponse({"error": "Invalid password"}, status=401)
+
         except User.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
-
 
 class RegisterView(APIView):
     def post(self, request):
@@ -74,7 +90,6 @@ class RegisterView(APIView):
 # });
 
 class LogoutView(APIView):
-    
     def post(self, request):
         # Lấy token từ header
         auth_header = request.headers.get('Authorization')

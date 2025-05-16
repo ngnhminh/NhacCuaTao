@@ -1,11 +1,11 @@
 import { useNavigate } from "@solidjs/router";
 
-const PlaylistCard = ({ playlist_picture, playlist_name, id }) => {
+const PlaylistCard = ({ playlist_picture, playlist_name, id, song_number }) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     return(
         <div 
-            className="inline-flex flex-col gap-2 rounded-md p-3 cursor-pointer hover:bg-[#1f1f1f] relative group"
+            className="bg-gray-900 inline-flex flex-col gap-2 rounded-md p-3 cursor-pointer hover:bg-[#1f1f1f] relative group"
             onClick={() => navigate(`/playlist/${id}`)}
         >
             <div className="relative rounded-md shadow-2xl">
@@ -25,7 +25,9 @@ const PlaylistCard = ({ playlist_picture, playlist_name, id }) => {
                     <a className="cursor-pointer text-base font-normal hover:underline capitalize">
                         {playlist_name}
                     </a>
-                    {/* <div className="text-[#b3b3b3] text-sm font-normal">{year}</div> */}
+                    <p class="text-sm text-gray-400">
+                        Playlist • {song_number} songs
+                    </p>
                 </div>
             </div>
         </div>

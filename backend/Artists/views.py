@@ -45,6 +45,8 @@ class ArtistGetView(APIView):
                         "id": str(artist.id),
                         "name": artist.artist_name,
                         "active_years": artist.active_years,
+                        "country": artist.country,
+                        "followers": artist.followers,
                         "user": {
                             "avatar_url": artist.user.avatar_url
                         }
@@ -61,6 +63,8 @@ class ArtistGetView(APIView):
                         "name": artist.artist_name,
                         "active_years": artist.active_years,
                         "description": artist.description,
+                        "followers": artist.followers,
+                        "country": artist.country,
                         "user": {
                             "avatar_url": artist.user.avatar_url
                         }

@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     'Users',
     'AuthToken',
     'Requests',
+    'ArtistFollow',
+    'channels',
+    'Notification',
+    'History',
 ]
 
 MIDDLEWARE = [
@@ -155,3 +159,15 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('127.0.0.1', 6379)],
+        # },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}

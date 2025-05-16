@@ -1,5 +1,5 @@
 import { createSignal, onMount } from 'solid-js';
-import { loginService } from '/./services/authService';
+import { loginService } from '../../services/authService';
 import toast from 'solid-toast';
 import { A, useNavigate } from '@solidjs/router';
 import { useAuth } from '../layout/AuthContext';
@@ -10,11 +10,13 @@ const Login = () => {
     const navigate = useNavigate();
     const auth = useAuth();
 
-    onMount(() => {
+    onMount(async () => {
         const token = localStorage.getItem('userToken');
+        const artistToken = localStorage.getItem('artistToken');
         if (token) {
             auth.setIsLoggedIn(true);
-            navigate('/');
+            if(artistToken) auth.setIsArtist(true);
+            navigate("/");
         }
     });
 
@@ -28,6 +30,7 @@ const Login = () => {
             // console.log("Login success:", data);
             if (data) {
                 auth.setIsLoggedIn(true);
+                if(data?.artist_id) auth.setIsArtist(true);
                 toast.success('Đăng nhập thành công!');
             } else {
                 toast.error('Đăng nhập thất bại');
