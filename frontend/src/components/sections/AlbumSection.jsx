@@ -68,10 +68,10 @@ export default function MainSection() {
     });
 
     const convert_seconds_to_time = (seconds) => {
-        const minutes = seconds / 60;
-        const remainingSeconds = seconds % 60;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
         return minutes + " phút " + remainingSeconds + " giây";
-    }
+    };
 
     //Chuyển đổi định dạng từ yyyy/mm/dd sáng xx ngày xx tháng xx năm
     function formatVietnameseDate(dateString) {
